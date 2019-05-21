@@ -1,0 +1,180 @@
+{
+  "status": 0,
+  "msg": "ok",
+  "logid": "1950945149",
+  "data": {
+    "isenable": true,
+    "redDot": false,
+    "appliances": [
+      {
+        "botName": "BroadLink",
+        "botId": "a44cdbcc-94c9-e9a8-f488-bc04e6df8a2b",
+        "botLogo": "https://skillstore.cdn.bcebos.com/icon/20180301/26/91036431-e3f5-c313-995e-13fffed04f58.png",
+        "num": "_PvgigO6-tGlA",
+        "applianceId": "00000000000000000000780f77a2b954",
+        "applianceTypes": [
+          "插座"
+        ],
+        "friendlyName": "热水器",
+        "friendlyDescription": "BroadLink SPmini3",
+        "groupName": "客厅",
+        "guideline": {
+          "开关": [
+            "打开热水器",
+            "关闭热水器"
+          ],
+          "定时开关": [
+            "5分钟后打开热水器",
+            "5分钟后关闭热水器"
+          ]
+        },
+        "supportActions": {
+          "turnOn": "打开插座",
+          "turnOff": "关闭插座"
+        },
+        "attributes": {
+          "turnOnState": {
+            "detail": {
+              "name": "开关",
+              "range": {
+                "ON": "打开",
+                "on": "打开",
+                "OFF": "关闭",
+                "off": "关闭",
+                "FAILED": "失败"
+              }
+            },
+            "value": "ON"
+          },
+          "connectivity": {
+            "detail": {
+              "name": "连接",
+              "range": {
+                "REACHABLE": "在线",
+                "UNREACHABLE": "离线"
+              }
+            },
+            "value": "REACHABLE"
+          }
+        }
+      },
+      {
+        "botName": "BroadLink",
+        "botId": "a44cdbcc-94c9-e9a8-f488-bc04e6df8a2b",
+        "botLogo": "https://skillstore.cdn.bcebos.com/icon/20180301/26/91036431-e3f5-c313-995e-13fffed04f58.png",
+        "num": "_PvgigO6-tSlA",
+        "applianceId": "00000000000000000000780f77fc66d7",
+        "applianceTypes": [
+          "灯"
+        ],
+        "friendlyName": "WiFi智能调光灯泡",
+        "friendlyDescription": "BroadLink WiFi智能调光灯泡",
+        "groupName": "卧室",
+        "guideline": {
+          "开关": [
+            "打开灯",
+            "关闭灯"
+          ],
+          "定时开关": [
+            "5分钟后打开灯",
+            "5分钟后关闭灯"
+          ],
+          "亮度": [
+            "灯亮度50",
+            "灯调亮",
+            "灯调暗"
+          ],
+          "颜色": [
+            "灯蓝色"
+          ]
+        },
+        "supportActions": {
+          "turnOn": "开灯",
+          "turnOff": "关灯",
+          "incrementBrightnessPercentage": "灯光调亮",
+          "decrementBrightnessPercentage": "灯光调暗",
+          "setBrightnessPercentage": "设置亮度"
+        },
+        "attributes": {
+          "connectivity": {
+            "detail": {
+              "name": "连接",
+              "range": {
+                "REACHABLE": "在线",
+                "UNREACHABLE": "离线"
+              }
+            },
+            "value": "REACHABLE"
+          },
+          "turnOnState": {
+            "detail": {
+              "name": "开关",
+              "range": {
+                "ON": "打开",
+                "on": "打开",
+                "OFF": "关闭",
+                "off": "关闭",
+                "FAILED": "失败"
+              }
+            },
+            "value": "off"
+          }
+        }
+      },
+      {
+        "botName": "欧瑞博",
+        "botId": "e14bb88d-6486-7be1-1e10-12a25f2a9512",
+        "botLogo": "https://skillstore.cdn.bcebos.com/icon/69/42c60721-9e57-8273-847d-962c2ef93742.png",
+        "num": "_PvgigO6-txlA",
+        "applianceId": "008bb7698fa34a2bbe97ff3766e88850",
+        "applianceTypes": [
+          "插座"
+        ],
+        "friendlyName": "S20c智能插座",
+        "friendlyDescription": "S20c智能插座",
+        "groupName": "儿童房",
+        "guideline": {
+          "开关": [
+            "打开S20c智能插座",
+            "关闭S20c智能插座"
+          ]
+        },
+        "supportActions": {
+          "turnOn": "打开插座",
+          "turnOff": "关闭插座"
+        },
+        "attributes": {
+          "connectivity": {
+            "detail": {
+              "name": "连接",
+              "range": {
+                "REACHABLE": "在线",
+                "UNREACHABLE": "离线"
+              }
+            },
+            "value": "REACHABLE"
+          },
+          "turnOnState": {
+            "detail": {
+              "name": "开关",
+              "range": {
+                "ON": "打开",
+                "on": "打开",
+                "OFF": "关闭",
+                "off": "关闭",
+                "FAILED": "失败"
+              }
+            },
+            "value": "OFF"
+          }
+        }
+      }
+    ],
+    "irClient": null,
+    "discoveredTv": {
+      "count": 0
+    },
+    "totalAppliances": 3
+  },
+  "spend_time": "292ms"
+}

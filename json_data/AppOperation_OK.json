@@ -1,0 +1,30 @@
+{
+  "status": 0,
+  "msg": "success",
+  "result": [
+    {
+      "tts_status": {
+        "tts": "好的"
+      },
+      "data": {
+        "attribute": {
+          "turnOnState": {
+            "detail": {
+              "name": "开关",
+              "range": {
+                "ON": "打开",
+                "on": "打开",
+                "OFF": "关闭",
+                "off": "关闭",
+                "FAILED": "失败"
+              }
+            },
+            "value": "ON"
+          }
+        }
+      }
+    }
+  ],
+  "logid": "1688442957",
+  "spend_time": "1876ms"
+}

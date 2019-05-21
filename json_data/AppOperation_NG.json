@@ -1,0 +1,30 @@
+{
+  "status": 0,
+  "msg": "success",
+  "result": [
+    {
+      "tts_status": {
+        "tts": "热水器不在线哦，检查下网络或在智慧星 APP上重新绑定一下试试吧"
+      },
+      "data": {
+        "attribute": {
+          "turnOnState": {
+            "detail": {
+              "name": "开关",
+              "range": {
+                "ON": "打开",
+                "on": "打开",
+                "OFF": "关闭",
+                "off": "关闭",
+                "FAILED": "失败"
+              }
+            },
+            "value": "ON"
+          }
+        }
+      }
+    }
+  ],
+  "logid": "0957890788",
+  "spend_time": "1556ms"
+}

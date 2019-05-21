@@ -1,0 +1,9 @@
+{
+  "status": 0,
+  "msg": "success",
+  "service_flag": "0",
+  "app_logo_url": "https://test17.g-book.com.cn/homelinkportal/Image/logo.jpg",
+  "app_dl_url": "http://download.sy-qb.com/dev_ml_official/index.php?c=b&m=i",
+  "maker_app_dl_url": "http://vehicle.baidu.com/static/codriver_staticpage/smarthomeapp.html",
+  "home_link_type": 1
+}
