@@ -39,11 +39,10 @@ public:
     static bool getV2HJsonDataIsEnable(void);
     static QString getGroupFilter(void);
     static QString getSelectApplianceID(void);
-    static int getSelectApplianceIndexFromID(QString &appliance_id);
 
     /* Get Function for V2H JsonData */
     static QJsonArray getJsonAppliancesList(void);
-    static QJsonObject getJsonApplianceFromID(QString &appliance_id);
+    static int getJsonApplianceFromID(QString &appliance_id, QJsonObject &appliance_json);
 
     /* Clear Function for V2H Data */
     static bool clearV2HJsonData(void);

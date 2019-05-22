@@ -40,14 +40,21 @@ int load_json(const char *json_filename)
         if (true == result){
             V2H_Debug("V2HJsonData::setV2HJsonData Success.");
 
-            V2H_Debug() << V2HJsonData::getJsonAppliancesList();
+            //V2H_Debug() << V2HJsonData::getJsonAppliancesList();
 
-            V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
+            //V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
+            V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
 
-            int index = V2HJsonData::getJsonApplianceFromID(V2HJsonData::getSelectApplianceID());
-            V2H_Debug() << "Seleted Appliance Index:" << index;
+            QString appliance_id = V2HJsonData::getSelectApplianceID();
+            QJsonObject appliance_json;
+            int appliance_index = V2HJsonData::getJsonApplianceFromID(appliance_id, appliance_json);
 
-            V2H_Debug() << V2HJsonData::getJsonAppliancesList();
+            if (appliance_index >= 0){
+                V2H_Debug() << "Seleted Appliance Index:" << appliance_index;
+                V2H_Debug() << "Seleted Appliance Json:" << appliance_json;
+            }
+
+            //V2H_Debug() << V2HJsonData::getJsonAppliancesList();
         }
 
         free(json_buffer);

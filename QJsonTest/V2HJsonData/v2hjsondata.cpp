@@ -7,9 +7,11 @@ static const QString KEY_DATA("data");
 static const QString KEY_ISENABLE("isenable");
 static const QString KEY_APPLIANCES("appliances");
 static const QString KEY_TOTALAPPLIANCES("totalAppliances");
+static const QString KEY_APPLIANCEID("applianceId");
 static const int STATUS_OK = 0;
 
 QJsonObject V2HJsonData::m_V2H_JsonData = QJsonObject();
+QJsonArray V2HJsonData::m_V2H_ApplianceArray = QJsonArray();
 QString V2HJsonData::m_GroupNameFilter = QString();
 //quint16 V2HJsonData::m_SelectApplianceIndex = V2H_APPLIANCE_INDEX_INIT;
 QString V2HJsonData::m_SelectedApplianceID = QString();
@@ -111,11 +113,6 @@ QString V2HJsonData::getSelectApplianceID()
     return m_SelectedApplianceID;
 }
 
-int V2HJsonData::getSelectApplianceIndexFromID(QString &appliance_id)
-{
-
-}
-
 #if 0
 int V2HJsonData::getSelectApplianceIndex()
 {
@@ -143,16 +140,31 @@ QJsonArray V2HJsonData::getJsonAppliancesList()
     return json_array;
 }
 
-QJsonObject V2HJsonData::getJsonApplianceFromID(QString &appliance_id)
+int V2HJsonData::getJsonApplianceFromID(QString &appliance_id, QJsonObject &appliance_json)
 {
-    QJsonObject json_obj;
+    int result_index = -1;
 
     if (false == appliance_id.isEmpty()){
         QJsonArray json_array = V2HJsonData::getJsonAppliancesList();
 
+        int appliance_index = 0;
+        for(const QJsonValue &json_value : json_array){
+            qDebug().noquote() << "appliance_index:" << appliance_index;
+            QJsonObject json_obj = json_value.toObject();
+
+            if((true == json_obj.contains(KEY_APPLIANCEID))
+                    && true == json_obj.value(KEY_APPLIANCEID).isString()
+                    && appliance_id == json_obj.value(KEY_APPLIANCEID).toString()){
+                appliance_json = json_obj;
+                result_index = appliance_index;
+                break;
+            }
+
+            appliance_index++;
+        }
     }
 
-    return json_obj;
+    return result_index;
 }
 
 bool V2HJsonData::clearV2HJsonData()
@@ -182,4 +194,6 @@ bool V2HJsonData::clearSelectApplianceIndex()
 bool V2HJsonData::clearSelectApplianceID()
 {
     m_SelectedApplianceID.clear();
+
+    return true;
 }
