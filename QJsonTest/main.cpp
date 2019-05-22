@@ -3,8 +3,8 @@
 #include "cJSON.h"
 #include <QString>
 #include <QDebug>
-#include <QJsonObject>
-#include <QJsonDocument>
+
+#include "v2hjsondata.h"
 
 const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 const char *json_filename_02 = "../json_data/AppliancesList.json";
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 {
     (void)(argc);
     (void)(argv);
-    qDebug("cJSON Test!");
+    V2H_Debug("cJSON Test!");
 
     load_json(json_filename_02);
 
@@ -31,15 +31,23 @@ int load_json(const char *json_filename)
     json_buffer = ReadFile(json_filename);
 
     if (json_buffer != NULL){
-        cJSON *json = cJSON_Parse(json_buffer);
+        //cJSON *json = cJSON_Parse(json_buffer);
 
-        qDebug().noquote() << json_buffer;
+        //V2H_Debug().noquote() << json_buffer;
 
-        QJsonDocument json_doc = QJsonDocument::fromJson(QByteArray(json_buffer));
-        QJsonObject json_obj;
+        bool result = V2HJsonData::setV2HJsonData(json_buffer);
 
-        if (true == json_doc.isObject() && false == json_doc.isNull()){
-            QJsonObject json_obj = QJsonDocument::fromJson(QByteArray(json_buffer)).object();
+        if (true == result){
+            V2H_Debug("V2HJsonData::setV2HJsonData Success.");
+
+            V2H_Debug() << V2HJsonData::getJsonAppliancesList();
+
+            V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
+
+            int index = V2HJsonData::getJsonApplianceFromID(V2HJsonData::getSelectApplianceID());
+            V2H_Debug() << "Seleted Appliance Index:" << index;
+
+            V2H_Debug() << V2HJsonData::getJsonAppliancesList();
         }
 
         free(json_buffer);

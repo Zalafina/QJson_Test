@@ -3,10 +3,13 @@ CONFIG -= app_bundle
 #CONFIG -= qt
 
 INCLUDEPATH += \
-    cjson
+    cjson \
+    V2HJsonData
 
 SOURCES += main.cpp \
-    cjson/cJSON.c
+    cjson/cJSON.c \
+    V2HJsonData/v2hjsondata.cpp
 
 HEADERS += \
-    cjson/cJSON.h
+    cjson/cJSON.h \
+    V2HJsonData/v2hjsondata.h
