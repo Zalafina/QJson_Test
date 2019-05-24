@@ -118,6 +118,39 @@
               }
             },
             "value": "off"
+          },
+          "brightness":{
+            "detail":{
+                "name":"亮度",
+                "scale":"%",
+                "range":{
+                    "min":0,
+                    "max":100
+                }
+            },
+            "value":"100"
+          },
+          "mode": {
+            "detail": {
+              "name": "模式",
+              "range": {
+                "READING": "阅读",
+                "SLEEP": "睡眠",
+                "ALARM": "报警",
+                "NIGHT_LIGHT": "夜灯",
+                "ROMANTIC": "浪漫",
+                "SUNDOWN": "日落",
+                "SUNRISE": "日出",
+                "RELAX": "休闲/放松",
+                "LIGHTING": "照明",
+                "SUN": "太阳",
+                "STAR": "星星",
+                "ENERGY_SAVING": "节能",
+                "MOON": "月亮",
+                "JUDI": "蹦迪"
+              }
+            },
+            "value": "NIGHT_LIGHT"
           }
         }
       },

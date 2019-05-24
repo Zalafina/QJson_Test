@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cJSON.h"
+#include <QFile>
 #include <QString>
 #include <QDebug>
 
@@ -10,8 +11,11 @@ const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 const char *json_filename_02 = "../json_data/AppliancesList.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
+static const QString GROUP_KETING("客厅");
+static const QString GROUP_WOSHI("卧室");
+static const QString GROUP_ERTONGFANG("儿童房");
+
 int load_json(const char *json_filename);
-char* ReadFile(const char *filename);
 
 int main(int argc, char *argv[])
 {
@@ -26,73 +30,68 @@ int main(int argc, char *argv[])
 
 int load_json(const char *json_filename)
 {
-    char *json_buffer = NULL;
+    QFile file(json_filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return -1;
+    }
 
-    json_buffer = ReadFile(json_filename);
+    QByteArray jsondata = file.readAll();
+    file.close();
 
-    if (json_buffer != NULL){
-        //cJSON *json = cJSON_Parse(json_buffer);
+    if (jsondata.isEmpty() != true){
 
-        //V2H_Debug().noquote() << json_buffer;
+#if 0
+        const cJSON *data = NULL;
+        const cJSON *appliances = NULL;
 
-        bool result = V2HJsonData::setV2HJsonData(json_buffer);
+        cJSON *monitor_json = cJSON_Parse(jsondata.constData());
+        if (monitor_json == NULL)
+        {
+            const char *error_ptr = cJSON_GetErrorPtr();
+            if (error_ptr != NULL)
+            {
+                V2H_Debug("Error before: %s", error_ptr);
+            }
+            return -1;
+        }
+
+        data = cJSON_GetObjectItemCaseSensitive(monitor_json, "data");
+        if ((false == cJSON_IsNull(data)) && (true == cJSON_IsObject(data)))
+        {
+            appliances = cJSON_GetObjectItemCaseSensitive(data, "appliances");
+
+            if ((false == cJSON_IsNull(appliances)) && (true == cJSON_IsArray(appliances)))
+            {
+                char *string = cJSON_Print(appliances);
+                int size = cJSON_GetArraySize(appliances);
+
+                qDebug("%d", size);
+            }
+        }
+#endif
+
+        bool result = V2HJsonData::setV2HJsonData(jsondata.constData());
 
         if (true == result){
             V2H_Debug("V2HJsonData::setV2HJsonData Success.");
 
-            //V2H_Debug() << V2HJsonData::getJsonAppliancesList();
+            V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
+            //V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
 
-            //V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
-            V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
+            bool setFilter = false;
+            setFilter = V2HJsonData::setGroupFilter(GROUP_WOSHI);
+            Q_UNUSED(setFilter);
 
-            QString appliance_id = V2HJsonData::getSelectApplianceID();
-            QJsonObject appliance_json;
-            int appliance_index = V2HJsonData::getJsonApplianceFromID(appliance_id, appliance_json);
+            ApplianceInfo applianceinfo = V2HJsonData::getSelectedApplianceInfo();
+            QList<MappedInfo> modelist = V2HJsonData::getSelectedApplianceModeList();
 
-            if (appliance_index >= 0){
-                V2H_Debug() << "Seleted Appliance Index:" << appliance_index;
-                V2H_Debug() << "Seleted Appliance Json:" << appliance_json;
-            }
+            QList<ApplianceInfo> groupapplilancelist = V2HJsonData::getGroupedAppliancesInfoList();
 
-            //V2H_Debug() << V2HJsonData::getJsonAppliancesList();
+            qDebug() << "groupapplilancelist.size():" << groupapplilancelist.size();
+            Q_UNUSED(applianceinfo);
+            Q_UNUSED(modelist);
         }
-
-        free(json_buffer);
     }
 
     return 0;
-}
-
-char* ReadFile(const char *filename)
-{
-   char *buffer = NULL;
-   int string_size,read_size;
-   FILE *handler = fopen(filename,"r");
-
-   if (handler)
-   {
-       //seek the last byte of the file
-       fseek(handler,0,SEEK_END);
-       //offset from the first to the last byte, or in other words, filesize
-       string_size = ftell (handler);
-       //go back to the start of the file
-       rewind(handler);
-
-       //allocate a string that can hold it all
-       buffer = (char*) malloc (sizeof(char) * (string_size + 1) );
-       //read it all in one operation
-       read_size = fread(buffer,sizeof(char),string_size,handler);
-       //fread doesnt set it so put a \0 in the last position
-       //and buffer is now officialy a string
-       buffer[string_size+1] = '\0';
-
-       if (string_size != read_size) {
-           //something went wrong, throw away the memory and set
-           //the buffer to NULL
-           free(buffer);
-           buffer = NULL;
-        }
-    }
-
-    return buffer;
 }
