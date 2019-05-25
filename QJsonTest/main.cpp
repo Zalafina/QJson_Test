@@ -15,13 +15,16 @@ static const QString GROUP_KETING("客厅");
 static const QString GROUP_WOSHI("卧室");
 static const QString GROUP_ERTONGFANG("儿童房");
 
+static const QString TYPE_CHAZUO("插座");
+static const QString TYPE_DENG("灯");
+
+
 int load_json(const char *json_filename);
 
 int main(int argc, char *argv[])
 {
     (void)(argc);
     (void)(argv);
-    V2H_Debug("cJSON Test!");
 
     load_json(json_filename_02);
 
@@ -78,9 +81,9 @@ int load_json(const char *json_filename)
             V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
             //V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
 
-            bool setFilter = false;
-            setFilter = V2HJsonData::setGroupFilter(GROUP_WOSHI);
-            Q_UNUSED(setFilter);
+            bool setGroupFilter = false;
+            setGroupFilter = V2HJsonData::setGroupNameFilter(GROUP_KETING);
+            Q_UNUSED(setGroupFilter);
 
             ApplianceInfo applianceinfo = V2HJsonData::getSelectedApplianceInfo();
             QList<MappedInfo> modelist = V2HJsonData::getSelectedApplianceModeList();
@@ -90,6 +93,15 @@ int load_json(const char *json_filename)
             qDebug() << "groupapplilancelist.size():" << groupapplilancelist.size();
             Q_UNUSED(applianceinfo);
             Q_UNUSED(modelist);
+
+
+            bool setTypeFilter = false;
+            setTypeFilter = V2HJsonData::setApplianceTypeFilter(TYPE_CHAZUO);
+            Q_UNUSED(setTypeFilter);
+
+            QList<ApplianceInfo> typeapplilancelist = V2HJsonData::getTypedAppliancesInfoList();
+
+            qDebug() << "typeapplilancelist.size():" << typeapplilancelist.size();
         }
     }
 

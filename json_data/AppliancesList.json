@@ -155,6 +155,58 @@
         }
       },
       {
+        "botName": "BroadLink",
+        "botId": "a44cdbcc-94c9-e9a8-f488-bc04e6df8a2b",
+        "botLogo": "https://skillstore.cdn.bcebos.com/icon/20180301/26/91036431-e3f5-c313-995e-13fffed04f58.png",
+        "num": "_PvgigO6-tGlA",
+        "applianceId": "10000000000000000000780f77a2b954",
+        "applianceTypes": [
+          "插座"
+        ],
+        "friendlyName": "热水器",
+        "friendlyDescription": "BroadLink SPmini3",
+        "groupName": "客厅",
+        "guideline": {
+          "开关": [
+            "打开热水器",
+            "关闭热水器"
+          ],
+          "定时开关": [
+            "5分钟后打开热水器",
+            "5分钟后关闭热水器"
+          ]
+        },
+        "supportActions": {
+          "turnOn": "打开插座",
+          "turnOff": "关闭插座"
+        },
+        "attributes": {
+          "turnOnState": {
+            "detail": {
+              "name": "开关",
+              "range": {
+                "ON": "打开",
+                "on": "打开",
+                "OFF": "关闭",
+                "off": "关闭",
+                "FAILED": "失败"
+              }
+            },
+            "value": "ON"
+          },
+          "connectivity": {
+            "detail": {
+              "name": "连接",
+              "range": {
+                "REACHABLE": "在线",
+                "UNREACHABLE": "离线"
+              }
+            },
+            "value": "REACHABLE"
+          }
+        }
+      },
+      {
         "botName": "欧瑞博",
         "botId": "e14bb88d-6486-7be1-1e10-12a25f2a9512",
         "botLogo": "https://skillstore.cdn.bcebos.com/icon/69/42c60721-9e57-8273-847d-962c2ef93742.png",
@@ -201,13 +253,65 @@
             "value": "OFF"
           }
         }
+      },
+      {
+        "botName": "BroadLink",
+        "botId": "a44cdbcc-94c9-e9a8-f488-bc04e6df8a2b",
+        "botLogo": "https://skillstore.cdn.bcebos.com/icon/20180301/26/91036431-e3f5-c313-995e-13fffed04f58.png",
+        "num": "_PvgigO6-tGlA",
+        "applianceId": "20000000000000000000780f77a2b954",
+        "applianceTypes": [
+          "插座"
+        ],
+        "friendlyName": "热水器",
+        "friendlyDescription": "BroadLink SPmini3",
+        "groupName": "客厅",
+        "guideline": {
+          "开关": [
+            "打开热水器",
+            "关闭热水器"
+          ],
+          "定时开关": [
+            "5分钟后打开热水器",
+            "5分钟后关闭热水器"
+          ]
+        },
+        "supportActions": {
+          "turnOn": "打开插座",
+          "turnOff": "关闭插座"
+        },
+        "attributes": {
+          "turnOnState": {
+            "detail": {
+              "name": "开关",
+              "range": {
+                "ON": "打开",
+                "on": "打开",
+                "OFF": "关闭",
+                "off": "关闭",
+                "FAILED": "失败"
+              }
+            },
+            "value": "ON"
+          },
+          "connectivity": {
+            "detail": {
+              "name": "连接",
+              "range": {
+                "REACHABLE": "在线",
+                "UNREACHABLE": "离线"
+              }
+            },
+            "value": "REACHABLE"
+          }
+        }
       }
     ],
     "irClient": null,
     "discoveredTv": {
       "count": 0
     },
-    "totalAppliances": 3
+    "totalAppliances": 5
   },
   "spend_time": "292ms"
 }

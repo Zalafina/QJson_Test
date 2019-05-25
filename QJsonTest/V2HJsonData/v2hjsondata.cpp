@@ -1,6 +1,7 @@
 #include "v2hjsondata.h"
 
 static const QString V2H_LOGTAG("[HMI_V2H]");
+static const QString V2H_LOGERROR("[ERROR]");
 
 static const QString KEY_STATUS("status");
 static const QString KEY_DATA("data");
@@ -45,8 +46,11 @@ QJsonObject V2HJsonData::m_V2H_JsonData = QJsonObject();
 QJsonArray V2HJsonData::m_V2H_ApplianceArray = QJsonArray();
 QList<ApplianceInfo> V2HJsonData::m_V2H_ApplianceInfoList = QList<ApplianceInfo>();
 QList<ApplianceInfo> V2HJsonData::m_V2H_GroupApplianceInfoList = QList<ApplianceInfo>();
+QList<ApplianceInfo> V2HJsonData::m_V2H_TypeApplianceInfoList = QList<ApplianceInfo>();
 QString V2HJsonData::m_GroupNameFilter = QString();
 QStringList V2HJsonData::m_GroupNameList = QStringList();
+QString V2HJsonData::m_ApplianceTypeFilter = QString();
+QStringList V2HJsonData::m_ApplianceTypeList = QStringList();
 QString V2HJsonData::m_SelectedApplianceID = QString();
 ApplianceInfo V2HJsonData::m_SelectedApplianceInfo = ApplianceInfo();
 bool V2HJsonData::m_V2H_JsonDataIsEnable = false;
@@ -255,12 +259,13 @@ QStringList V2HJsonData::makeGroupNameList()
     if (getTotalAppliances() > 0){
 
         for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
-            if (false == appliance.groupName.isEmpty()){
+            if ((false == appliance.groupName.isEmpty())
+                    && (false == groupnamelist.contains(appliance.groupName))){
                 groupnamelist.append(appliance.groupName);
             }
         }
 
-        V2H_Debug().noquote() << __FUNCTION__ << ":" << "GroupNameList.size =" << groupnamelist.size();
+        V2H_NORMAL_LOG << "GroupNameList.size =" << groupnamelist.size();
     }
 
     return groupnamelist;
@@ -278,6 +283,56 @@ QList<ApplianceInfo> V2HJsonData::makeAppliancesInfoListByGroup(QString &groupna
                 applianceinfolist.append(appliance);
             }
         }
+    }
+    else{
+        applianceinfolist = m_V2H_ApplianceInfoList;
+    }
+
+    return applianceinfolist;
+}
+
+QStringList V2HJsonData::makeApplianceTypeList()
+{
+    QStringList appliancetypelist;
+
+    if (getTotalAppliances() > 0){
+
+        for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
+            if (false == appliance.applianceTypes.isEmpty()){
+                for(const QString &type : appliance.applianceTypes){
+                    if ((false == type.isEmpty())
+                            && (false == appliancetypelist.contains(type))){
+                        appliancetypelist.append(type);
+                    }
+                }
+            }
+        }
+
+        V2H_NORMAL_LOG << "ApplianceTypeList.size =" << appliancetypelist.size();
+    }
+
+    return appliancetypelist;
+}
+
+QList<ApplianceInfo> V2HJsonData::makeAppliancesInfoListByType(QString &appliancetype)
+{
+    QList<ApplianceInfo> applianceinfolist;
+
+    if((false == appliancetype.isEmpty())
+            && (getTotalAppliances() > 0)){
+        for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
+            if (false == appliance.applianceTypes.isEmpty()){
+                for(const QString &type : appliance.applianceTypes){
+                    if ((false == type.isEmpty())
+                            && (appliancetype == type)){
+                        applianceinfolist.append(appliance);
+                        break;
+                    }
+                }
+            }
+        }
+
+        V2H_NORMAL_LOG << "ApplianceTypeList(" << appliancetype << ").size()" << applianceinfolist.size();
     }
     else{
         applianceinfolist = m_V2H_ApplianceInfoList;
@@ -313,9 +368,17 @@ bool V2HJsonData::setV2HJsonData(const char *json_buffer)
                     m_V2H_GroupApplianceInfoList = m_V2H_ApplianceInfoList;
                 }
                 m_GroupNameList = makeGroupNameList();
+
+                if (false == m_ApplianceTypeFilter.isEmpty()){
+                    m_V2H_TypeApplianceInfoList = makeAppliancesInfoListByType(m_ApplianceTypeFilter);
+                }
+                else{
+                    m_V2H_TypeApplianceInfoList = m_V2H_ApplianceInfoList;
+                }
+                m_ApplianceTypeList = makeApplianceTypeList();
                 result = true;
 
-                V2H_Debug().noquote() << "getTotalAppliances" << V2HJsonData::getTotalAppliances();
+                V2H_NORMAL_LOG << "TotalAppliances" << V2HJsonData::getTotalAppliances();
             }
         }
     }
@@ -323,15 +386,19 @@ bool V2HJsonData::setV2HJsonData(const char *json_buffer)
     return result;
 }
 
-bool V2HJsonData::setGroupFilter(QString groupname)
+bool V2HJsonData::setGroupNameFilter(QString groupname)
 {
     bool result = false;
     bool find = false;
 
+    if (true == groupname.isEmpty()){
+        return false;
+    }
+
     for(const QString &group : m_GroupNameList){
         if (groupname == group){
             find = true;
-            V2H_Debug().noquote().nospace() << __FUNCTION__ << ":" << "GroupName(" << groupname << ") found.";
+            V2H_NORMAL_LOG << "GroupName(" << groupname << ") found.";
             break;
         }
     }
@@ -342,6 +409,37 @@ bool V2HJsonData::setGroupFilter(QString groupname)
 
         if (applianceinfolist.size() > 0){
             m_V2H_GroupApplianceInfoList = applianceinfolist;
+        }
+
+        result = true;
+    }
+
+    return result;
+}
+
+bool V2HJsonData::setApplianceTypeFilter(QString appliancetype)
+{
+    bool result = false;
+    bool find = false;
+
+    if (true == appliancetype.isEmpty()){
+        return false;
+    }
+
+    for(const QString &type : m_ApplianceTypeList){
+        if (appliancetype == type){
+            find = true;
+            V2H_NORMAL_LOG << "ApplianceType(" << appliancetype << ") found.";
+            break;
+        }
+    }
+
+    if (true == find){
+        m_ApplianceTypeFilter = appliancetype;
+        QList<ApplianceInfo> applianceinfolist = makeAppliancesInfoListByType(appliancetype);
+
+        if (applianceinfolist.size() > 0){
+            m_V2H_TypeApplianceInfoList = applianceinfolist;
         }
 
         result = true;
@@ -445,6 +543,11 @@ QList<ApplianceInfo> V2HJsonData::getGroupedAppliancesInfoList()
     return m_V2H_GroupApplianceInfoList;
 }
 
+QList<ApplianceInfo> V2HJsonData::getTypedAppliancesInfoList()
+{
+    return m_V2H_TypeApplianceInfoList;
+}
+
 QJsonArray V2HJsonData::getJsonAppliancesArrayFromJsonData()
 {
     QJsonArray json_array;
@@ -455,10 +558,9 @@ QJsonArray V2HJsonData::getJsonAppliancesArrayFromJsonData()
             && (0 < m_V2H_JsonData.value(KEY_TOTALAPPLIANCES).toInt() && m_V2H_JsonData.value(KEY_TOTALAPPLIANCES).toInt() < V2H_APPLIANCE_INDEX_MAX)){
         if (m_V2H_JsonData.value(KEY_APPLIANCES).toArray().size() == m_V2H_JsonData.value(KEY_TOTALAPPLIANCES).toInt()){
             json_array = m_V2H_JsonData.value(KEY_APPLIANCES).toArray();
-            V2H_Debug("%s totalAppliances:%d", V2H_LOGTAG.toStdString().c_str(), m_V2H_JsonData.value(KEY_TOTALAPPLIANCES).toInt());
         }
         else{
-            V2H_Error("%s totalAppliances:%d, appliancesArray size:%d", V2H_LOGTAG.toStdString().c_str(), m_V2H_JsonData.value(KEY_TOTALAPPLIANCES).toInt(), m_V2H_JsonData.value(KEY_APPLIANCES).toArray().size());
+            V2H_ERROR_LOG<<"totalAppliances:"<<m_V2H_JsonData.value(KEY_TOTALAPPLIANCES).toInt()<<", "<<"appliancesArraySize:"<<m_V2H_JsonData.value(KEY_APPLIANCES).toArray().size();
         }
     }
 
@@ -473,8 +575,6 @@ QJsonArray V2HJsonData::getJsonAppliancesArray()
 bool V2HJsonData::clearV2HJsonData()
 {
     m_V2H_JsonData = QJsonObject();
-    V2H_Debug() << "m_V2H_JsonData.size()" << m_V2H_JsonData.size();
-
     return true;
 }
 

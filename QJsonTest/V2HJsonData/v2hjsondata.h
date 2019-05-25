@@ -16,6 +16,9 @@
 #endif
 #define V2H_Error  qWarning
 
+#define V2H_NORMAL_LOG V2H_Debug().noquote().nospace()<<V2H_LOGTAG<<__FUNCTION__<<":"
+#define V2H_ERROR_LOG V2H_Debug().noquote().nospace()<<V2H_LOGTAG<<V2H_LOGERROR<<__FUNCTION__<<":"
+
 #define V2H_APPLIANCE_INDEX_MAX    (500)
 
 typedef struct
@@ -70,10 +73,13 @@ public:
     static QList<ApplianceInfo> makeApplianceInfoListFromJsonArray(QJsonArray &json_array);
     static QStringList makeGroupNameList(void);
     static QList<ApplianceInfo> makeAppliancesInfoListByGroup(QString &groupname);
+    static QStringList makeApplianceTypeList(void);
+    static QList<ApplianceInfo> makeAppliancesInfoListByType(QString &appliancetype);
 
     /* Set Function for V2H Data */
     static bool setV2HJsonData(const char *json_buffer);
-    static bool setGroupFilter(QString groupname);
+    static bool setGroupNameFilter(QString groupname);
+    static bool setApplianceTypeFilter(QString appliancetype);
     static bool setSelectApplianceID(QString appliance_id);
 
     /* Get Function for V2H Data */
@@ -87,6 +93,7 @@ public:
     static int getApplianceInfoFromID(QString &appliance_id, ApplianceInfo &applianceinfo);
     static QList<ApplianceInfo> getAppliancesInfoList(void);
     static QList<ApplianceInfo> getGroupedAppliancesInfoList(void);
+    static QList<ApplianceInfo> getTypedAppliancesInfoList(void);
 
     /* Get Function for V2H JsonData */
     static QJsonArray getJsonAppliancesArrayFromJsonData(void);
@@ -107,8 +114,11 @@ public:
     static QJsonArray  m_V2H_ApplianceArray;
     static QList<ApplianceInfo> m_V2H_ApplianceInfoList;
     static QList<ApplianceInfo> m_V2H_GroupApplianceInfoList;
+    static QList<ApplianceInfo> m_V2H_TypeApplianceInfoList;
     static QString m_GroupNameFilter;
     static QStringList m_GroupNameList;
+    static QString m_ApplianceTypeFilter;
+    static QStringList m_ApplianceTypeList;
     static QString m_SelectedApplianceID;
     static ApplianceInfo m_SelectedApplianceInfo;
     static bool m_V2H_JsonDataIsEnable;
