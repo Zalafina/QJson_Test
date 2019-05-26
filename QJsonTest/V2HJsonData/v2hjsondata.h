@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include "cJSON.h"
 
 #define V2H_JSON_DATA_DEBUG
 
@@ -69,6 +70,7 @@ public:
     ~V2HJsonData();
 
     /* Common Function */
+    static cJSON makecJSONAppliancesListArray(const char *json_buffer);
     static bool verifyV2HJsonData(QJsonObject &json_obj);
     static QList<ApplianceInfo> makeApplianceInfoListFromJsonArray(QJsonArray &json_array);
     static QStringList makeGroupNameList(void);
@@ -77,7 +79,7 @@ public:
     static QList<ApplianceInfo> makeAppliancesInfoListByType(QString &appliancetype);
 
     /* Set Function for V2H Data */
-    static bool setV2HJsonData(const char *json_buffer);
+    static bool setV2HAppliancesListJsonData(const char *json_buffer);
     static bool setGroupNameFilter(QString groupname);
     static bool setApplianceTypeFilter(QString appliancetype);
     static bool setSelectApplianceID(QString appliance_id);
@@ -86,6 +88,7 @@ public:
     static bool getV2HJsonDataIsEnable(void);
     static QString getGroupFilter(void);
     static QString getSelectedApplianceID(void);
+    static int getSelectedApplianceIndex(void);
     static int getTotalAppliances(void);
     static QStringList getGroupNameList(void);
     static ApplianceInfo getSelectedApplianceInfo(void);
@@ -112,6 +115,7 @@ public:
     static QString m_V2H_OriginalJsonString;
     static QJsonObject m_V2H_JsonData;
     static QJsonArray  m_V2H_ApplianceArray;
+    static cJSON m_V2H_cJSONAppliancesArray;
     static QList<ApplianceInfo> m_V2H_ApplianceInfoList;
     static QList<ApplianceInfo> m_V2H_GroupApplianceInfoList;
     static QList<ApplianceInfo> m_V2H_TypeApplianceInfoList;
@@ -120,6 +124,7 @@ public:
     static QString m_ApplianceTypeFilter;
     static QStringList m_ApplianceTypeList;
     static QString m_SelectedApplianceID;
+    static int m_SelectedApplianceIndex;
     static ApplianceInfo m_SelectedApplianceInfo;
     static bool m_V2H_JsonDataIsEnable;
 

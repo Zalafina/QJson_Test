@@ -44,6 +44,7 @@ static const int STATUS_OK = 0;
 QString V2HJsonData::m_V2H_OriginalJsonString = QString();
 QJsonObject V2HJsonData::m_V2H_JsonData = QJsonObject();
 QJsonArray V2HJsonData::m_V2H_ApplianceArray = QJsonArray();
+cJSON V2HJsonData::m_V2H_cJSONAppliancesArray = cJSON();
 QList<ApplianceInfo> V2HJsonData::m_V2H_ApplianceInfoList = QList<ApplianceInfo>();
 QList<ApplianceInfo> V2HJsonData::m_V2H_GroupApplianceInfoList = QList<ApplianceInfo>();
 QList<ApplianceInfo> V2HJsonData::m_V2H_TypeApplianceInfoList = QList<ApplianceInfo>();
@@ -52,6 +53,7 @@ QStringList V2HJsonData::m_GroupNameList = QStringList();
 QString V2HJsonData::m_ApplianceTypeFilter = QString();
 QStringList V2HJsonData::m_ApplianceTypeList = QStringList();
 QString V2HJsonData::m_SelectedApplianceID = QString();
+int V2HJsonData::m_SelectedApplianceIndex = -1;
 ApplianceInfo V2HJsonData::m_SelectedApplianceInfo = ApplianceInfo();
 bool V2HJsonData::m_V2H_JsonDataIsEnable = false;
 
@@ -63,6 +65,41 @@ V2HJsonData::V2HJsonData(QObject *parent) : QObject(parent)
 V2HJsonData::~V2HJsonData()
 {
 
+}
+
+cJSON V2HJsonData::makecJSONAppliancesListArray(const char *json_buffer)
+{
+    cJSON applianceslist;
+    const cJSON *data = NULL;
+    const cJSON *appliances = NULL;
+
+    cJSON *monitor_json = cJSON_Parse(json_buffer);
+    if (monitor_json == NULL)
+    {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            V2H_Debug("Error before: %s", error_ptr);
+        }
+        return applianceslist;
+    }
+
+    data = cJSON_GetObjectItemCaseSensitive(monitor_json, "data");
+    if ((false == cJSON_IsNull(data)) && (true == cJSON_IsObject(data)))
+    {
+        appliances = cJSON_GetObjectItemCaseSensitive(data, "appliances");
+
+        if ((false == cJSON_IsNull(appliances)) && (true == cJSON_IsArray(appliances)))
+        {
+            int size = cJSON_GetArraySize(appliances);
+
+            if (size == getTotalAppliances()){
+                applianceslist = *appliances;
+            }
+        }
+    }
+
+    return applianceslist;
 }
 
 bool V2HJsonData::verifyV2HJsonData(QJsonObject &json_obj)
@@ -341,7 +378,7 @@ QList<ApplianceInfo> V2HJsonData::makeAppliancesInfoListByType(QString &applianc
     return applianceinfolist;
 }
 
-bool V2HJsonData::setV2HJsonData(const char *json_buffer)
+bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
 {
     bool result = false;
     QJsonParseError error;
@@ -355,27 +392,53 @@ bool V2HJsonData::setV2HJsonData(const char *json_buffer)
                 && STATUS_OK == json_obj.value(KEY_STATUS).toInt()){
             if((true == json_obj.contains(KEY_DATA))
                     && true == json_obj.value(KEY_DATA).isObject()){
-                m_V2H_OriginalJsonString = QString(json_buffer);
                 m_V2H_JsonData = json_obj.value(KEY_DATA).toObject();
                 m_V2H_JsonDataIsEnable = verifyV2HJsonData(m_V2H_JsonData);
+                if (m_V2H_JsonDataIsEnable != true){
+                    return true;
+                }
+
+                m_V2H_OriginalJsonString = QString(json_buffer);
                 m_V2H_ApplianceArray = getJsonAppliancesArrayFromJsonData();
                 m_V2H_ApplianceInfoList = makeApplianceInfoListFromJsonArray(m_V2H_ApplianceArray);
 
+                if (m_V2H_ApplianceArray.size() > 0){
+                    m_V2H_cJSONAppliancesArray = makecJSONAppliancesListArray(json_buffer);
+                }
+
+                m_GroupNameList = makeGroupNameList();
                 if (false == m_GroupNameFilter.isEmpty()){
-                    m_V2H_GroupApplianceInfoList = makeAppliancesInfoListByGroup(m_GroupNameFilter);
+                    bool setGroupFilter = false;
+                    setGroupFilter = setGroupNameFilter(m_GroupNameFilter);
+
+                    if (true == setGroupFilter){
+                        V2H_NORMAL_LOG << "Reset GroupNameFilter(" << m_GroupNameFilter << ")" << "Success.";
+                    }
+                    else{
+                        m_V2H_GroupApplianceInfoList = m_V2H_ApplianceInfoList;
+                        V2H_ERROR_LOG << "Reset GroupNameFilter(" << m_GroupNameFilter << ")" << "Failure.";
+                    }
                 }
                 else{
                     m_V2H_GroupApplianceInfoList = m_V2H_ApplianceInfoList;
                 }
-                m_GroupNameList = makeGroupNameList();
 
+                m_ApplianceTypeList = makeApplianceTypeList();
                 if (false == m_ApplianceTypeFilter.isEmpty()){
-                    m_V2H_TypeApplianceInfoList = makeAppliancesInfoListByType(m_ApplianceTypeFilter);
+                    bool setTypeFilter = false;
+                    setTypeFilter = setApplianceTypeFilter(m_ApplianceTypeFilter);
+
+                    if (true == setTypeFilter){
+                        V2H_NORMAL_LOG << "Reset ApplianceTypeFilter(" << m_ApplianceTypeFilter << ")" << "Success.";
+                    }
+                    else{
+                        m_V2H_TypeApplianceInfoList = m_V2H_ApplianceInfoList;
+                        V2H_ERROR_LOG << "Reset ApplianceTypeFilter(" << m_ApplianceTypeFilter << ")" << "Failure.";
+                    }
                 }
                 else{
                     m_V2H_TypeApplianceInfoList = m_V2H_ApplianceInfoList;
                 }
-                m_ApplianceTypeList = makeApplianceTypeList();
                 result = true;
 
                 V2H_NORMAL_LOG << "TotalAppliances" << V2HJsonData::getTotalAppliances();
@@ -457,6 +520,7 @@ bool V2HJsonData::setSelectApplianceID(QString appliance_id)
         int appliance_index = getApplianceInfoFromID(appliance_id, appliance_info);
 
         if (appliance_index >= 0){
+            m_SelectedApplianceIndex = appliance_index;
             m_SelectedApplianceID = appliance_id;
             m_SelectedApplianceInfo = appliance_info;
             result = true;
@@ -479,6 +543,16 @@ QString V2HJsonData::getGroupFilter()
 QString V2HJsonData::getSelectedApplianceID()
 {
     return m_SelectedApplianceID;
+}
+
+int V2HJsonData::getSelectedApplianceIndex()
+{
+    if (0 <= m_SelectedApplianceIndex && m_SelectedApplianceIndex < getTotalAppliances()){
+        return m_SelectedApplianceIndex;
+    }
+    else{
+        return -1;
+    }
 }
 
 int V2HJsonData::getTotalAppliances()
@@ -588,6 +662,7 @@ bool V2HJsonData::clearGroupFilter()
 
 bool V2HJsonData::clearSelectApplianceID()
 {
+    m_SelectedApplianceIndex = -1;
     m_SelectedApplianceID.clear();
     m_SelectedApplianceInfo = ApplianceInfo();
 

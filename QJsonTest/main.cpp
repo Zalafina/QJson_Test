@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "cJSON.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -53,7 +52,7 @@ int load_json(const char *json_filename)
             const char *error_ptr = cJSON_GetErrorPtr();
             if (error_ptr != NULL)
             {
-                V2H_Debug("Error before: %s", error_ptr);
+                V2H_Debug("Error before: %s", errorsetV2HAppliancesListJsonData_ptr);
             }
             return -1;
         }
@@ -65,18 +64,16 @@ int load_json(const char *json_filename)
 
             if ((false == cJSON_IsNull(appliances)) && (true == cJSON_IsArray(appliances)))
             {
-                char *string = cJSON_Print(appliances);
                 int size = cJSON_GetArraySize(appliances);
 
-                qDebug("%d", size);
             }
         }
 #endif
 
-        bool result = V2HJsonData::setV2HJsonData(jsondata.constData());
+        bool result = V2HJsonData::setV2HAppliancesListJsonData(jsondata.constData());
 
         if (true == result){
-            V2H_Debug("V2HJsonData::setV2HJsonData Success.");
+            V2H_Debug("V2HJsonData::setV2HAppliancesListJsonData Success.");
 
             V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
             //V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
