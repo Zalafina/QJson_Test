@@ -3,7 +3,17 @@
 static const QString V2H_LOGTAG("[HMI_V2H]");
 static const QString V2H_LOGERROR("[ERROR]");
 
+/* Common Keys */
 static const QString KEY_STATUS("status");
+
+/* ServiceFlag  Keys */
+static const QString KEY_SERVICE_FLAG("service_flag");
+static const QString KEY_APP_LOGO_URL("app_logo_url");
+static const QString KEY_APP_DL_URL("app_dl_url");
+static const QString KEY_MAKER_APP_DL_URL("maker_app_dl_url");
+static const QString KEY_HOME_LINK_TYPE("home_link_type");
+
+/* AppliancesList Keys */
 static const QString KEY_DATA("data");
 static const QString KEY_ISENABLE("isenable");
 static const QString KEY_APPLIANCES("appliances");
@@ -41,7 +51,10 @@ static const QString KEY_DETAIL_RANGE_MAX("max");
 
 static const int STATUS_OK = 0;
 
-QString V2HJsonData::m_V2H_OriginalJsonString = QString();
+QString V2HJsonData::m_V2H_AppliancesListJsonString = QString();
+QString V2HJsonData::m_V2H_ServiceFlagJsonString = QString();
+QString V2HJsonData::m_V2H_ApplianceOperationJsonString = QString();
+ServiceFlag V2HJsonData::m_V2H_ServiceFlag = ServiceFlag();
 QJsonObject V2HJsonData::m_V2H_JsonData = QJsonObject();
 QJsonArray V2HJsonData::m_V2H_ApplianceArray = QJsonArray();
 cJSON V2HJsonData::m_V2H_cJSONAppliancesArray = cJSON();
@@ -56,10 +69,13 @@ QString V2HJsonData::m_SelectedApplianceID = QString();
 int V2HJsonData::m_SelectedApplianceIndex = -1;
 ApplianceInfo V2HJsonData::m_SelectedApplianceInfo = ApplianceInfo();
 bool V2HJsonData::m_V2H_JsonDataIsEnable = false;
+bool V2HJsonData::m_V2H_ServiceFlagUpdated = false;
+bool V2HJsonData::m_V2H_AppliancesListUpdated = false;
+bool V2HJsonData::m_V2H_ApplianceOperationUpdated = false;
 
 V2HJsonData::V2HJsonData(QObject *parent) : QObject(parent)
 {
-
+    setV2HServiceFlagGeted(false);
 }
 
 V2HJsonData::~V2HJsonData()
@@ -378,6 +394,82 @@ QList<ApplianceInfo> V2HJsonData::makeAppliancesInfoListByType(QString &applianc
     return applianceinfolist;
 }
 
+ServiceFlag V2HJsonData::makeServiceFlagFromJsonObj(QJsonObject &json_obj)
+{
+    ServiceFlag serviceflag;
+
+    if((true == json_obj.contains(KEY_SERVICE_FLAG))
+            && true == json_obj.value(KEY_SERVICE_FLAG).isString()){
+        serviceflag.service_flag = json_obj.value(KEY_SERVICE_FLAG).toString();
+    }
+
+    if((true == json_obj.contains(KEY_APP_LOGO_URL))
+            && true == json_obj.value(KEY_APP_LOGO_URL).isString()){
+        serviceflag.app_logo_url = json_obj.value(KEY_APP_LOGO_URL).toString();
+    }
+
+    if((true == json_obj.contains(KEY_APP_DL_URL))
+            && true == json_obj.value(KEY_APP_DL_URL).isString()){
+        serviceflag.app_dl_url = json_obj.value(KEY_APP_DL_URL).toString();
+    }
+
+    if((true == json_obj.contains(KEY_MAKER_APP_DL_URL))
+            && true == json_obj.value(KEY_MAKER_APP_DL_URL).isString()){
+        serviceflag.maker_app_dl_url = json_obj.value(KEY_MAKER_APP_DL_URL).toString();
+    }
+
+    if((true == json_obj.contains(KEY_HOME_LINK_TYPE))
+            && true == json_obj.value(KEY_HOME_LINK_TYPE).isDouble()){
+        serviceflag.home_link_type = json_obj.value(KEY_HOME_LINK_TYPE).toInt();
+    }
+
+    serviceflag.geted = true;
+
+    return serviceflag;
+}
+
+void V2HJsonData::setV2HServiceFlagUpdatedFlag(bool flag)
+{
+    m_V2H_ServiceFlagUpdated = flag;
+}
+
+void V2HJsonData::setV2HAppliancesListUpdatedFlag(bool flag)
+{
+    m_V2H_AppliancesListUpdated = flag;
+}
+
+void V2HJsonData::setV2HApplianceOperationUpdatedFlag(bool flag)
+{
+    m_V2H_ApplianceOperationUpdated = flag;
+}
+
+void V2HJsonData::setV2HServiceFlagGeted(bool geted)
+{
+    m_V2H_ServiceFlag.geted = geted;
+}
+
+bool V2HJsonData::setV2HServiceFlagJsonData(const char *json_buffer)
+{
+    bool result = false;
+    QJsonParseError error;
+    QJsonDocument json_doc = QJsonDocument::fromJson(QByteArray(json_buffer), &error);
+
+    if ((QJsonParseError::NoError == error.error)
+            && (true == json_doc.isObject())
+            && (false == json_doc.isNull())){
+        QJsonObject json_obj = json_doc.object();
+        if((true == json_obj.contains(KEY_STATUS))
+                && STATUS_OK == json_obj.value(KEY_STATUS).toInt()){
+            m_V2H_ServiceFlagJsonString = QString(json_buffer);
+            m_V2H_ServiceFlag = makeServiceFlagFromJsonObj(json_obj);
+            setV2HServiceFlagGeted(true);
+            result = true;
+        }
+    }
+
+    return result;
+}
+
 bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
 {
     bool result = false;
@@ -398,7 +490,7 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
                     return true;
                 }
 
-                m_V2H_OriginalJsonString = QString(json_buffer);
+                m_V2H_AppliancesListJsonString = QString(json_buffer);
                 m_V2H_ApplianceArray = getJsonAppliancesArrayFromJsonData();
                 m_V2H_ApplianceInfoList = makeApplianceInfoListFromJsonArray(m_V2H_ApplianceArray);
 
@@ -443,6 +535,27 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
 
                 V2H_NORMAL_LOG << "TotalAppliances" << V2HJsonData::getTotalAppliances();
             }
+        }
+    }
+
+    return result;
+}
+
+bool V2HJsonData::setV2HApplianceOperationJsonData(const char *json_buffer)
+{
+    bool result = false;
+    QJsonParseError error;
+    QJsonDocument json_doc = QJsonDocument::fromJson(QByteArray(json_buffer), &error);
+
+    if ((QJsonParseError::NoError == error.error)
+            && (true == json_doc.isObject())
+            && (false == json_doc.isNull())){
+        QJsonObject json_obj = json_doc.object();
+        if((true == json_obj.contains(KEY_STATUS))
+                && STATUS_OK == json_obj.value(KEY_STATUS).toInt()){
+            m_V2H_ApplianceOperationJsonString = QString(json_buffer);
+
+            result = true;
         }
     }
 
@@ -528,6 +641,31 @@ bool V2HJsonData::setSelectApplianceID(QString appliance_id)
     }
 
     return result;
+}
+
+bool V2HJsonData::getV2HServiceFlagUpdatedFlag()
+{
+    return m_V2H_ServiceFlagUpdated;
+}
+
+bool V2HJsonData::getV2HAppliancesListUpdatedFlag()
+{
+    return m_V2H_AppliancesListUpdated;
+}
+
+bool V2HJsonData::getV2HApplianceOperationUpdatedFlag()
+{
+    return m_V2H_ApplianceOperationUpdated;
+}
+
+bool V2HJsonData::getV2HServiceFlagGeted()
+{
+    return m_V2H_ServiceFlag.geted;
+}
+
+ServiceFlag V2HJsonData::getV2HServiceFlag()
+{
+    return m_V2H_ServiceFlag;
 }
 
 bool V2HJsonData::getV2HJsonDataIsEnable()

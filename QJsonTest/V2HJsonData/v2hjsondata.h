@@ -62,6 +62,16 @@ typedef struct
     QList<AttributeInfo> attributes;
 }ApplianceInfo;
 
+typedef struct
+{
+    bool geted;
+    QString service_flag;
+    QString app_logo_url;
+    QString app_dl_url;
+    QString maker_app_dl_url;
+    int home_link_type;
+}ServiceFlag;
+
 class V2HJsonData : public QObject
 {
     Q_OBJECT
@@ -77,14 +87,26 @@ public:
     static QList<ApplianceInfo> makeAppliancesInfoListByGroup(QString &groupname);
     static QStringList makeApplianceTypeList(void);
     static QList<ApplianceInfo> makeAppliancesInfoListByType(QString &appliancetype);
+    static ServiceFlag makeServiceFlagFromJsonObj(QJsonObject &json_obj);
 
     /* Set Function for V2H Data */
+    static void setV2HServiceFlagUpdatedFlag(bool flag);
+    static void setV2HAppliancesListUpdatedFlag(bool flag);
+    static void setV2HApplianceOperationUpdatedFlag(bool flag);
+    static void setV2HServiceFlagGeted(bool geted);
+    static bool setV2HServiceFlagJsonData(const char *json_buffer);
     static bool setV2HAppliancesListJsonData(const char *json_buffer);
+    static bool setV2HApplianceOperationJsonData(const char *json_buffer);
     static bool setGroupNameFilter(QString groupname);
     static bool setApplianceTypeFilter(QString appliancetype);
     static bool setSelectApplianceID(QString appliance_id);
 
     /* Get Function for V2H Data */
+    static bool getV2HServiceFlagUpdatedFlag(void);
+    static bool getV2HAppliancesListUpdatedFlag(void);
+    static bool getV2HApplianceOperationUpdatedFlag(void);
+    static bool getV2HServiceFlagGeted(void);
+    static ServiceFlag getV2HServiceFlag(void);
     static bool getV2HJsonDataIsEnable(void);
     static QString getGroupFilter(void);
     static QString getSelectedApplianceID(void);
@@ -112,7 +134,10 @@ signals:
 public slots:
 
 public:
-    static QString m_V2H_OriginalJsonString;
+    static QString m_V2H_AppliancesListJsonString;
+    static QString m_V2H_ServiceFlagJsonString;
+    static QString m_V2H_ApplianceOperationJsonString;
+    static ServiceFlag m_V2H_ServiceFlag;
     static QJsonObject m_V2H_JsonData;
     static QJsonArray  m_V2H_ApplianceArray;
     static cJSON m_V2H_cJSONAppliancesArray;
@@ -127,6 +152,9 @@ public:
     static int m_SelectedApplianceIndex;
     static ApplianceInfo m_SelectedApplianceInfo;
     static bool m_V2H_JsonDataIsEnable;
+    static bool m_V2H_ServiceFlagUpdated;
+    static bool m_V2H_AppliancesListUpdated;
+    static bool m_V2H_ApplianceOperationUpdated;
 
 private:
 };
