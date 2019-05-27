@@ -33,6 +33,13 @@ static const QString KEY_GUIDELINE("guideline");
 static const QString KEY_SUPPORTACTIONS("supportActions");
 static const QString KEY_ATTRIBUTES("attributes");
 
+/* Appliance Keys for cJSON */
+static const char *CJSON_KEY_GUIDELINE = "guideline";
+static const char *CJSON_KEY_SUPPORTACTIONS= "supportActions";
+static const char *CJSON_KEY_ATTRIBUTES = "attributes";
+static const char *CJSON_KEY_DETAIL = "detail";
+static const char *CJSON_KEY_RANGE = "range";
+
 /* Action Bar Number Keys */
 static const QString KEY_ACTION_INCREMENT("increment");
 static const QString KEY_ACTION_DECREMENT("decrement");
@@ -234,12 +241,43 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                 for(const QString &key : keys){
                     if((true == json_attributes.contains(key))
                             && true == json_attributes.value(key).isObject()){
-                        const cJSON *attribute_cjson = NULL;
+                        const cJSON *temp_cjson = NULL;
+                        const cJSON *appliance_cjson = NULL;
+                        const cJSON *guideline_cjson = NULL;
+                        const cJSON *supportactions_cjson = NULL;
+                        const cJSON *attributes_cjson = NULL;
+                        const cJSON *temp_attribute_cjson = NULL;
+                        const cJSON *temp_detail_cjson = NULL;
+                        const cJSON *temp_range_cjson = NULL;
                         AttributeInfo attributeinfo;
                         attributeinfo.attributename = key;
 
                         if (arrayindex < cJSON_GetArraySize(&m_V2H_cJSONAppliancesArray)){
-                            attribute_cjson = cJSON_GetArrayItem(&m_V2H_cJSONAppliancesArray, arrayindex);
+                            appliance_cjson = cJSON_GetArrayItem(&m_V2H_cJSONAppliancesArray, arrayindex);
+
+                            if ((false == cJSON_IsNull(appliance_cjson)) && (true == cJSON_IsObject(appliance_cjson)))
+                            {
+                                temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_GUIDELINE);
+
+                                if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
+                                {
+                                    guideline_cjson = temp_cjson;
+                                }
+
+                                temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_SUPPORTACTIONS);
+
+                                if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
+                                {
+                                    supportactions_cjson = temp_cjson;
+                                }
+
+                                temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_ATTRIBUTES);
+
+                                if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
+                                {
+                                    attributes_cjson = temp_cjson;
+                                }
+                            }
                         }
 
                         if((true == json_attributes.value(key).toObject().contains(KEY_DETAIL))
@@ -280,15 +318,30 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                                     attributeinfo.detail.minmax_flag = false;
                                 }
 
-                                QStringList keys = json_range.keys();
+                                if (true == cJSON_HasObjectItem(attributes_cjson, key.toStdString().c_str())){
+                                    temp_attribute_cjson = cJSON_GetObjectItemCaseSensitive(attributes_cjson, key.toStdString().c_str());
 
-                                for(const QString &key : keys){
-                                    if((true == json_range.contains(key))
-                                            && true == json_range.value(key).isString()){
-                                        MappedInfo range;
-                                        range.key = key;
-                                        range.value = json_range.value(key).toString();
-                                        attributeinfo.detail.range_map.append(range);
+                                    if (true == cJSON_HasObjectItem(temp_attribute_cjson, CJSON_KEY_DETAIL)){
+                                        temp_detail_cjson = cJSON_GetObjectItemCaseSensitive(temp_attribute_cjson, CJSON_KEY_DETAIL);
+
+                                        if (true == cJSON_HasObjectItem(temp_detail_cjson, CJSON_KEY_RANGE)){
+                                            temp_range_cjson = cJSON_GetObjectItemCaseSensitive(temp_detail_cjson, CJSON_KEY_RANGE);
+
+                                            const cJSON *range_child_cjson = NULL;
+                                            if (temp_range_cjson->child != NULL){
+                                                range_child_cjson = temp_range_cjson->child;
+
+                                                while(range_child_cjson != NULL){
+                                                    if (true == cJSON_IsString(range_child_cjson)){
+                                                        MappedInfo range;
+                                                        range.key = QString(range_child_cjson->string);
+                                                        range.value = QString(range_child_cjson->valuestring);
+                                                        attributeinfo.detail.range_map.append(range);
+                                                    }
+                                                    range_child_cjson = range_child_cjson->next;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -500,11 +553,15 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
                 m_V2H_AppliancesListJsonString = QString(json_buffer);
                 m_V2H_ApplianceArray = getJsonAppliancesArrayFromJsonData();
 
+                cJSON cjson_array;
                 if (m_V2H_ApplianceArray.size() > 0){
-                    m_V2H_cJSONAppliancesArray = makecJSONAppliancesListArray(json_buffer);
+                    cjson_array = makecJSONAppliancesListArray(json_buffer);
                 }
 
-                m_V2H_ApplianceInfoList = makeApplianceInfoListFromJsonArray(m_V2H_ApplianceArray);
+                if (false == cJSON_IsNull(&cjson_array)){
+                    m_V2H_cJSONAppliancesArray = cjson_array;
+                    m_V2H_ApplianceInfoList = makeApplianceInfoListFromJsonArray(m_V2H_ApplianceArray);
+                }
 
                 m_GroupNameList = makeGroupNameList();
                 if (false == m_GroupNameFilter.isEmpty()){
