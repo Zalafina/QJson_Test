@@ -145,6 +145,40 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
     if (json_array.size() > 0){
         int arrayindex = 0;
         for(const QJsonValue &json_value : json_array){
+            const cJSON *temp_cjson = NULL;
+            const cJSON *appliance_cjson = NULL;
+            const cJSON *guideline_cjson = NULL;
+            const cJSON *supportactions_cjson = NULL;
+            const cJSON *attributes_cjson = NULL;
+
+            if (arrayindex < cJSON_GetArraySize(&m_V2H_cJSONAppliancesArray)){
+                appliance_cjson = cJSON_GetArrayItem(&m_V2H_cJSONAppliancesArray, arrayindex);
+
+                if ((false == cJSON_IsNull(appliance_cjson)) && (true == cJSON_IsObject(appliance_cjson)))
+                {
+                    temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_GUIDELINE);
+
+                    if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
+                    {
+                        guideline_cjson = temp_cjson;
+                    }
+
+                    temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_SUPPORTACTIONS);
+
+                    if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
+                    {
+                        supportactions_cjson = temp_cjson;
+                    }
+
+                    temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_ATTRIBUTES);
+
+                    if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
+                    {
+                        attributes_cjson = temp_cjson;
+                    }
+                }
+            }
+
             ApplianceInfo applianceinfo;
             QJsonObject json_obj = json_value.toObject();
 
@@ -241,44 +275,11 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                 for(const QString &key : keys){
                     if((true == json_attributes.contains(key))
                             && true == json_attributes.value(key).isObject()){
-                        const cJSON *temp_cjson = NULL;
-                        const cJSON *appliance_cjson = NULL;
-                        const cJSON *guideline_cjson = NULL;
-                        const cJSON *supportactions_cjson = NULL;
-                        const cJSON *attributes_cjson = NULL;
                         const cJSON *temp_attribute_cjson = NULL;
                         const cJSON *temp_detail_cjson = NULL;
                         const cJSON *temp_range_cjson = NULL;
                         AttributeInfo attributeinfo;
                         attributeinfo.attributename = key;
-
-                        if (arrayindex < cJSON_GetArraySize(&m_V2H_cJSONAppliancesArray)){
-                            appliance_cjson = cJSON_GetArrayItem(&m_V2H_cJSONAppliancesArray, arrayindex);
-
-                            if ((false == cJSON_IsNull(appliance_cjson)) && (true == cJSON_IsObject(appliance_cjson)))
-                            {
-                                temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_GUIDELINE);
-
-                                if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
-                                {
-                                    guideline_cjson = temp_cjson;
-                                }
-
-                                temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_SUPPORTACTIONS);
-
-                                if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
-                                {
-                                    supportactions_cjson = temp_cjson;
-                                }
-
-                                temp_cjson = cJSON_GetObjectItemCaseSensitive(appliance_cjson, CJSON_KEY_ATTRIBUTES);
-
-                                if ((false == cJSON_IsNull(temp_cjson)) && (true == cJSON_IsObject(temp_cjson)))
-                                {
-                                    attributes_cjson = temp_cjson;
-                                }
-                            }
-                        }
 
                         if((true == json_attributes.value(key).toObject().contains(KEY_DETAIL))
                                 && true == json_attributes.value(key).toObject().value(KEY_DETAIL).isObject()){
