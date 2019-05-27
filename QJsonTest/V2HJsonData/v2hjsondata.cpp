@@ -109,7 +109,7 @@ cJSON V2HJsonData::makecJSONAppliancesListArray(const char *json_buffer)
         {
             int size = cJSON_GetArraySize(appliances);
 
-            if (size == getTotalAppliances()){
+            if (size == m_V2H_ApplianceArray.size()){
                 applianceslist = *appliances;
             }
         }
@@ -136,6 +136,7 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
     QList<ApplianceInfo> applianceinfolist;
 
     if (json_array.size() > 0){
+        int arrayindex = 0;
         for(const QJsonValue &json_value : json_array){
             ApplianceInfo applianceinfo;
             QJsonObject json_obj = json_value.toObject();
@@ -233,8 +234,13 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                 for(const QString &key : keys){
                     if((true == json_attributes.contains(key))
                             && true == json_attributes.value(key).isObject()){
+                        const cJSON *attribute_cjson = NULL;
                         AttributeInfo attributeinfo;
                         attributeinfo.attributename = key;
+
+                        if (arrayindex < cJSON_GetArraySize(&m_V2H_cJSONAppliancesArray)){
+                            attribute_cjson = cJSON_GetArrayItem(&m_V2H_cJSONAppliancesArray, arrayindex);
+                        }
 
                         if((true == json_attributes.value(key).toObject().contains(KEY_DETAIL))
                                 && true == json_attributes.value(key).toObject().value(KEY_DETAIL).isObject()){
@@ -299,6 +305,7 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
             }
 
             applianceinfolist.append(applianceinfo);
+            arrayindex += 1;
         }
     }
 
@@ -492,11 +499,12 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
 
                 m_V2H_AppliancesListJsonString = QString(json_buffer);
                 m_V2H_ApplianceArray = getJsonAppliancesArrayFromJsonData();
-                m_V2H_ApplianceInfoList = makeApplianceInfoListFromJsonArray(m_V2H_ApplianceArray);
 
                 if (m_V2H_ApplianceArray.size() > 0){
                     m_V2H_cJSONAppliancesArray = makecJSONAppliancesListArray(json_buffer);
                 }
+
+                m_V2H_ApplianceInfoList = makeApplianceInfoListFromJsonArray(m_V2H_ApplianceArray);
 
                 m_GroupNameList = makeGroupNameList();
                 if (false == m_GroupNameFilter.isEmpty()){
