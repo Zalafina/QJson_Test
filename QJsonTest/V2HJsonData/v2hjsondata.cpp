@@ -45,6 +45,11 @@ static const char *CJSON_KEY_RANGE = "range";
 static const QString KEY_ACTION_INCREMENT("increment");
 static const QString KEY_ACTION_DECREMENT("decrement");
 
+/* SupportActions Keys */
+static const QString KEY_ACTION_TURNON("turnOn");
+static const QString KEY_ACTION_TURNOFF("turnOff");
+static const QString KEY_ACTION_SETMODE("setMode");
+
 /* Attribute Names */
 static const QString KEY_ATTR_MODE("mode");
 
@@ -236,8 +241,32 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
             }
 
             if((true == json_obj.contains(KEY_GUIDELINE))
-                    && true == json_obj.value(KEY_GUIDELINE).isObject()){
-                applianceinfo.guideline = json_obj.value(KEY_GUIDELINE).toObject();
+                    && true == json_obj.value(KEY_GUIDELINE).isObject()
+                    && guideline_cjson != NULL){
+                const cJSON *guideline_next_cjson = NULL;
+                const cJSON *guideline_child_cjson = NULL;
+                if (guideline_cjson->child != NULL){
+                    guideline_next_cjson = guideline_cjson->child;
+
+                    if (true == cJSON_IsArray(guideline_next_cjson)){
+                        while(guideline_next_cjson != NULL){
+                            Guideline guideline;
+                            guideline.key = QString(guideline_next_cjson->string);
+
+                            guideline_child_cjson = guideline_next_cjson->child;
+                            while(guideline_child_cjson != NULL){
+                                if (true == cJSON_IsString(guideline_child_cjson)){
+                                    guideline.values.append(QString(guideline_child_cjson->valuestring));
+                                }
+
+                                guideline_child_cjson = guideline_child_cjson->next;
+                            }
+
+                            applianceinfo.guideline.append(guideline);
+                            guideline_next_cjson = guideline_next_cjson->next;
+                        }
+                    }
+                }
             }
 
             if((true == json_obj.contains(KEY_SUPPORTACTIONS))
@@ -246,10 +275,19 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                 quint32 incrementNumber = 0;
                 quint32 decrementNumber = 0;
                 quint32 actionBarNum = 0;
-                QString incrementactionString;
-                QString decrementactionString;
+                QString incrementactionKeyString;
+                QString decrementactionKeyString;
+                QString incrementactionValueString;
+                QString decrementactionValueString;
                 QString incrementaction;
                 QString decrementaction;
+                bool actionturnOn = false;
+                bool actionturnOff = false;
+                bool actionsetMode = false;
+
+                applianceinfo.actionturnOnOffSupported = false;
+                applianceinfo.actionsetModeSupported = false;
+
                 const cJSON *supportactions_child_cjson = NULL;
                 if (supportactions_cjson->child != NULL){
                     supportactions_child_cjson = supportactions_cjson->child;
@@ -261,32 +299,52 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                             action.value = QString(supportactions_child_cjson->valuestring);
                             applianceinfo.supportActions.append(action);
 
-                            if (true == action.key.startsWith(KEY_ACTION_INCREMENT)){
-                                incrementactionString = action.key;
-                                incrementaction = action.key.right(incrementactionString.size() - KEY_ACTION_INCREMENT.size());
+                            if (KEY_ACTION_TURNON == action.key){
+                                actionturnOn = true;
+                            }
+                            else if (KEY_ACTION_TURNOFF == action.key){
+                                actionturnOff = true;
+                            }
+                            else if (KEY_ACTION_SETMODE == action.key){
+                                actionsetMode = true;
+                            }
+                            else if (true == action.key.startsWith(KEY_ACTION_INCREMENT)){
+                                incrementactionKeyString = action.key;
+                                incrementactionValueString = action.value;
+                                incrementaction = action.key.right(incrementactionKeyString.size() - KEY_ACTION_INCREMENT.size());
                                 incrementNumber += 1;
                             }
                             else if (true == action.key.startsWith(KEY_ACTION_DECREMENT)){
-                                decrementactionString = action.key;
-                                decrementaction = action.key.right(decrementactionString.size() - KEY_ACTION_DECREMENT.size());
+                                decrementactionKeyString = action.key;
+                                decrementactionValueString = action.value;
+                                decrementaction = action.key.right(decrementactionKeyString.size() - KEY_ACTION_DECREMENT.size());
                                 decrementNumber += 1;
+                            }
+
+                            if ((true == actionturnOn) && (true == actionturnOff)){
+                                applianceinfo.actionturnOnOffSupported = true;
+                            }
+
+                            if (true == actionsetMode){
+                                applianceinfo.actionsetModeSupported = true;
                             }
 
                             if ((incrementNumber > 0)
                                     && (incrementNumber == decrementNumber)
                                     && (incrementNumber > actionBarNum)){
                                 if (incrementaction == decrementaction){
+                                    ActionBar actionbar;
+                                    actionbar.incrementAction.key = incrementactionKeyString;
+                                    actionbar.incrementAction.value = incrementactionValueString;
+                                    actionbar.decrementAction.key = decrementactionKeyString;
+                                    actionbar.decrementAction.value = decrementactionValueString;
+                                    applianceinfo.actionBars.append(actionbar);
                                     actionBarNum = incrementNumber;
                                 }
                             }
                         }
                         supportactions_child_cjson = supportactions_child_cjson->next;
                     }
-                }
-
-                if ((incrementNumber == decrementNumber)
-                        && (incrementNumber == actionBarNum)){
-                    applianceinfo.actionBarNum = actionBarNum;
                 }
             }
 
@@ -809,6 +867,11 @@ ApplianceInfo V2HJsonData::getSelectedApplianceInfo()
     return m_SelectedApplianceInfo;
 }
 
+QStringList V2HJsonData::getSelectedApplianceTypes()
+{
+    return m_SelectedApplianceInfo.applianceTypes;
+}
+
 QList<MappedInfo> V2HJsonData::getSelectedApplianceModeList()
 {
     QList<MappedInfo> modelist;
@@ -824,7 +887,7 @@ QList<MappedInfo> V2HJsonData::getSelectedApplianceModeList()
     return modelist;
 }
 
-QString V2HJsonData::getSelectedApplianceCurrentModeValueString()
+QString V2HJsonData::getSelectedApplianceCurrentModeValue()
 {
     QString currentmodevaluestring;
 
@@ -843,7 +906,7 @@ MappedInfo V2HJsonData::getSelectedApplianceCurrentMode()
 {
     MappedInfo currentmode;
     QList<MappedInfo> modelist = getSelectedApplianceModeList();
-    QString modevaluestring = getSelectedApplianceCurrentModeValueString();
+    QString modevaluestring = getSelectedApplianceCurrentModeValue();
 
     for(const MappedInfo &mode : modelist){
         if (modevaluestring == mode.key){
@@ -853,6 +916,26 @@ MappedInfo V2HJsonData::getSelectedApplianceCurrentMode()
     }
 
     return currentmode;
+}
+
+QList<ActionBar> V2HJsonData::getSelectedApplianceActionBars()
+{
+    return m_SelectedApplianceInfo.actionBars;
+}
+
+QList<Guideline> V2HJsonData::getSelectedApplianceGuideline()
+{
+    return m_SelectedApplianceInfo.guideline;
+}
+
+bool V2HJsonData::getSelectedApplianceTurnOnOffSupported()
+{
+    return m_SelectedApplianceInfo.actionturnOnOffSupported;
+}
+
+bool V2HJsonData::getSelectedApplianceSetModeSupported()
+{
+    return m_SelectedApplianceInfo.actionsetModeSupported;
 }
 
 int V2HJsonData::getApplianceInfoFromID(QString &appliance_id, ApplianceInfo &applianceinfo)

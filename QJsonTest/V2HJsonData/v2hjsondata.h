@@ -30,6 +30,18 @@ typedef struct
 
 typedef struct
 {
+    QString key;
+    QStringList values;
+}Guideline;
+
+typedef struct
+{
+    MappedInfo incrementAction;
+    MappedInfo decrementAction;
+}ActionBar;
+
+typedef struct
+{
     QString name;
     QString scale;
     QList<MappedInfo> range_map;
@@ -56,10 +68,12 @@ typedef struct
     QString friendlyName;
     QString friendlyDescription;
     QString groupName;
-    QJsonObject guideline;
+    QList<Guideline> guideline;
     QList<MappedInfo> supportActions;
-    quint32 actionBarNum;
+    QList<ActionBar> actionBars;
     QList<AttributeInfo> attributes;
+    bool actionturnOnOffSupported;
+    bool actionsetModeSupported;
 }ApplianceInfo;
 
 typedef struct
@@ -115,9 +129,14 @@ public:
     static int getTotalAppliances(void);
     static QStringList getGroupNameList(void);
     static ApplianceInfo getSelectedApplianceInfo(void);
+    static QStringList getSelectedApplianceTypes(void);
     static QList<MappedInfo> getSelectedApplianceModeList(void);
-    static QString getSelectedApplianceCurrentModeValueString(void);
+    static QString getSelectedApplianceCurrentModeValue(void);
     static MappedInfo getSelectedApplianceCurrentMode(void);
+    static QList<ActionBar> getSelectedApplianceActionBars(void);
+    static QList<Guideline> getSelectedApplianceGuideline(void);
+    static bool getSelectedApplianceTurnOnOffSupported(void);
+    static bool getSelectedApplianceSetModeSupported(void);
     static int getApplianceInfoFromID(QString &appliance_id, ApplianceInfo &applianceinfo);
     static QList<ApplianceInfo> getAppliancesInfoList(void);
     static QList<ApplianceInfo> getGroupedAppliancesInfoList(void);

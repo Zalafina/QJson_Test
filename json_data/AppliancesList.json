@@ -93,7 +93,10 @@
           "turnOff": "关灯",
           "incrementBrightnessPercentage": "灯光调亮",
           "decrementBrightnessPercentage": "灯光调暗",
-          "setBrightnessPercentage": "设置亮度"
+          "setBrightnessPercentage": "设置亮度",
+          "incrementFanSpeed": "风扇速度调高",
+          "decrementFanSpeed": "风扇速度调低",
+          "setMode": "设置模式"
         },
         "attributes": {
           "connectivity": {
@@ -150,7 +153,7 @@
                 "JUDI": "蹦迪"
               }
             },
-            "value": "NIGHT_LIGHT"
+            "value": "ROMANTIC"
           }
         }
       },

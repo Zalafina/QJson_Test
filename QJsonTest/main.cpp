@@ -7,8 +7,8 @@
 #include "v2hjsondata.h"
 
 const char *json_filename_01 = "../json_data/GetServiceFlag.json";
-//const char *json_filename_02 = "../json_data/AppliancesList.json";
-const char *json_filename_02 = "../json_data/AppliancesList_New.json";
+const char *json_filename_02 = "../json_data/AppliancesList.json";
+//const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
 static const QString GROUP_KETING("客厅");
@@ -87,12 +87,12 @@ int load_json_02(const char *json_filename)
         if (true == result){
             V2H_Debug("V2HJsonData::setV2HAppliancesListJsonData Success.");
 
-            //V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
             //V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
-            V2HJsonData::setSelectApplianceID(QString("140737488379182"));
+            V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
+            //V2HJsonData::setSelectApplianceID(QString("140737488379182"));
 
             bool setGroupFilter = false;
-            setGroupFilter = V2HJsonData::setGroupNameFilter(GROUP_WEIFENZU);
+            setGroupFilter = V2HJsonData::setGroupNameFilter(GROUP_WOSHI);
             Q_UNUSED(setGroupFilter);
 
             ApplianceInfo applianceinfo = V2HJsonData::getSelectedApplianceInfo();
@@ -107,6 +107,16 @@ int load_json_02(const char *json_filename)
             MappedInfo currentmode = V2HJsonData::getSelectedApplianceCurrentMode();
 
             qDebug() << "currentmode.key:" << currentmode.key << "; value:" << currentmode.value;
+
+            QList<ActionBar> actionbars = V2HJsonData::getSelectedApplianceActionBars();
+
+            qDebug() << "actionbars number:" << actionbars.size();
+
+            qDebug() << "getSelectedApplianceTurnOnOffSupported:" << V2HJsonData::getSelectedApplianceTurnOnOffSupported();
+            qDebug() << "getSelectedApplianceSetModeSupported:" << V2HJsonData::getSelectedApplianceSetModeSupported();
+
+            QList<Guideline> guideline = V2HJsonData::getSelectedApplianceGuideline();
+            qDebug() << "SelectedApplianceGuideline size:" << guideline.size();
 
             bool setTypeFilter = false;
             setTypeFilter = V2HJsonData::setApplianceTypeFilter(TYPE_KONGTIAO);
