@@ -108,6 +108,7 @@ public:
     static bool getV2HServiceFlagGeted(void);
     static ServiceFlag getV2HServiceFlag(void);
     static bool getV2HJsonDataIsEnable(void);
+    static bool getV2HJsonDataRedDot(void);
     static QString getGroupFilter(void);
     static QString getSelectedApplianceID(void);
     static int getSelectedApplianceIndex(void);
@@ -115,6 +116,8 @@ public:
     static QStringList getGroupNameList(void);
     static ApplianceInfo getSelectedApplianceInfo(void);
     static QList<MappedInfo> getSelectedApplianceModeList(void);
+    static QString getSelectedApplianceCurrentModeValueString(void);
+    static MappedInfo getSelectedApplianceCurrentMode(void);
     static int getApplianceInfoFromID(QString &appliance_id, ApplianceInfo &applianceinfo);
     static QList<ApplianceInfo> getAppliancesInfoList(void);
     static QList<ApplianceInfo> getGroupedAppliancesInfoList(void);
@@ -151,7 +154,8 @@ public:
     static QString m_SelectedApplianceID;
     static int m_SelectedApplianceIndex;
     static ApplianceInfo m_SelectedApplianceInfo;
-    static bool m_V2H_JsonDataIsEnable;
+    static bool m_V2H_AppliancesListIsEnable;
+    static bool m_V2H_AppliancesListRedDot;
     static bool m_V2H_ServiceFlagUpdated;
     static bool m_V2H_AppliancesListUpdated;
     static bool m_V2H_ApplianceOperationUpdated;

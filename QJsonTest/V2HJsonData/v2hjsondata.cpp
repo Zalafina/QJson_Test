@@ -16,6 +16,7 @@ static const QString KEY_HOME_LINK_TYPE("home_link_type");
 /* AppliancesList Keys */
 static const QString KEY_DATA("data");
 static const QString KEY_ISENABLE("isenable");
+static const QString KEY_REDDOT("redDot");
 static const QString KEY_APPLIANCES("appliances");
 static const QString KEY_TOTALAPPLIANCES("totalAppliances");
 
@@ -75,7 +76,8 @@ QStringList V2HJsonData::m_ApplianceTypeList = QStringList();
 QString V2HJsonData::m_SelectedApplianceID = QString();
 int V2HJsonData::m_SelectedApplianceIndex = -1;
 ApplianceInfo V2HJsonData::m_SelectedApplianceInfo = ApplianceInfo();
-bool V2HJsonData::m_V2H_JsonDataIsEnable = false;
+bool V2HJsonData::m_V2H_AppliancesListIsEnable = false;
+bool V2HJsonData::m_V2H_AppliancesListRedDot = false;
 bool V2HJsonData::m_V2H_ServiceFlagUpdated = false;
 bool V2HJsonData::m_V2H_AppliancesListUpdated = false;
 bool V2HJsonData::m_V2H_ApplianceOperationUpdated = false;
@@ -102,7 +104,7 @@ cJSON V2HJsonData::makecJSONAppliancesListArray(const char *json_buffer)
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            V2H_Debug("Error before: %s", error_ptr);
+            V2H_ERROR_LOG << "Error before:" << error_ptr;
         }
         return applianceslist;
     }
@@ -240,29 +242,51 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
 
             if((true == json_obj.contains(KEY_SUPPORTACTIONS))
                     && true == json_obj.value(KEY_SUPPORTACTIONS).isObject()){
+
                 quint32 incrementNumber = 0;
                 quint32 decrementNumber = 0;
-                QJsonObject actions_obj = json_obj.value(KEY_SUPPORTACTIONS).toObject();
-                QStringList keys = actions_obj.keys();
+                quint32 actionBarNum = 0;
+                QString incrementactionString;
+                QString decrementactionString;
+                QString incrementaction;
+                QString decrementaction;
+                const cJSON *supportactions_child_cjson = NULL;
+                if (supportactions_cjson->child != NULL){
+                    supportactions_child_cjson = supportactions_cjson->child;
 
-                for(const QString &key : keys){
-                    if((true == actions_obj.contains(key))
-                            && true == actions_obj.value(key).isString()){
-                        MappedInfo action;
-                        action.key = key;
-                        action.value = actions_obj.value(key).toString();
-                        applianceinfo.supportActions.append(action);
-                        if (true == key.startsWith(KEY_ACTION_INCREMENT)){
-                            incrementNumber += 1;
+                    while(supportactions_child_cjson != NULL){
+                        if (true == cJSON_IsString(supportactions_child_cjson)){
+                            MappedInfo action;
+                            action.key = QString(supportactions_child_cjson->string);
+                            action.value = QString(supportactions_child_cjson->valuestring);
+                            applianceinfo.supportActions.append(action);
+
+                            if (true == action.key.startsWith(KEY_ACTION_INCREMENT)){
+                                incrementactionString = action.key;
+                                incrementaction = action.key.right(incrementactionString.size() - KEY_ACTION_INCREMENT.size());
+                                incrementNumber += 1;
+                            }
+                            else if (true == action.key.startsWith(KEY_ACTION_DECREMENT)){
+                                decrementactionString = action.key;
+                                decrementaction = action.key.right(decrementactionString.size() - KEY_ACTION_DECREMENT.size());
+                                decrementNumber += 1;
+                            }
+
+                            if ((incrementNumber > 0)
+                                    && (incrementNumber == decrementNumber)
+                                    && (incrementNumber > actionBarNum)){
+                                if (incrementaction == decrementaction){
+                                    actionBarNum = incrementNumber;
+                                }
+                            }
                         }
-                        else if (true == key.startsWith(KEY_ACTION_DECREMENT)){
-                            decrementNumber += 1;
-                        }
+                        supportactions_child_cjson = supportactions_child_cjson->next;
                     }
                 }
 
-                if (incrementNumber == decrementNumber){
-                    applianceinfo.actionBarNum = incrementNumber;
+                if ((incrementNumber == decrementNumber)
+                        && (incrementNumber == actionBarNum)){
+                    applianceinfo.actionBarNum = actionBarNum;
                 }
             }
 
@@ -348,9 +372,9 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                             }
                         }
 
-                        if((true == json_obj.contains(KEY_VALUE))
-                                && true == json_obj.value(KEY_VALUE).isString()){
-                            attributeinfo.value = json_obj.value(KEY_VALUE).toString();
+                        if((true == json_attributes.value(key).toObject().contains(KEY_VALUE))
+                                && true == json_attributes.value(key).toObject().value(KEY_VALUE).isString()){
+                            attributeinfo.value = json_attributes.value(key).toObject().value(KEY_VALUE).toString();
                         }
 
                         applianceinfo.attributes.append(attributeinfo);
@@ -379,7 +403,7 @@ QStringList V2HJsonData::makeGroupNameList()
             }
         }
 
-        V2H_NORMAL_LOG << "GroupNameList.size =" << groupnamelist.size();
+        V2H_NORMAL_LOG << "GroupNameList.size = " << groupnamelist.size();
     }
 
     return groupnamelist;
@@ -422,7 +446,7 @@ QStringList V2HJsonData::makeApplianceTypeList()
             }
         }
 
-        V2H_NORMAL_LOG << "ApplianceTypeList.size =" << appliancetypelist.size();
+        V2H_NORMAL_LOG << "ApplianceTypeList.size = " << appliancetypelist.size();
     }
 
     return appliancetypelist;
@@ -546,9 +570,15 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
             if((true == json_obj.contains(KEY_DATA))
                     && true == json_obj.value(KEY_DATA).isObject()){
                 m_V2H_JsonData = json_obj.value(KEY_DATA).toObject();
-                m_V2H_JsonDataIsEnable = verifyV2HJsonData(m_V2H_JsonData);
-                if (m_V2H_JsonDataIsEnable != true){
+                m_V2H_AppliancesListIsEnable = verifyV2HJsonData(m_V2H_JsonData);
+
+                if (m_V2H_AppliancesListIsEnable != true){
                     return true;
+                }
+
+                if((true == m_V2H_JsonData.contains(KEY_REDDOT))
+                        && true == m_V2H_JsonData.value(KEY_REDDOT).isBool()){
+                    m_V2H_AppliancesListRedDot = m_V2H_JsonData.value(KEY_REDDOT).toBool();
                 }
 
                 m_V2H_AppliancesListJsonString = QString(json_buffer);
@@ -599,7 +629,7 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
                 }
                 result = true;
 
-                V2H_NORMAL_LOG << "TotalAppliances" << V2HJsonData::getTotalAppliances();
+                V2H_NORMAL_LOG << "TotalAppliances = " << V2HJsonData::getTotalAppliances();
             }
         }
     }
@@ -736,7 +766,12 @@ ServiceFlag V2HJsonData::getV2HServiceFlag()
 
 bool V2HJsonData::getV2HJsonDataIsEnable()
 {
-    return m_V2H_JsonDataIsEnable;
+    return m_V2H_AppliancesListIsEnable;
+}
+
+bool V2HJsonData::getV2HJsonDataRedDot()
+{
+    return m_V2H_AppliancesListRedDot;
 }
 
 QString V2HJsonData::getGroupFilter()
@@ -787,6 +822,37 @@ QList<MappedInfo> V2HJsonData::getSelectedApplianceModeList()
     }
 
     return modelist;
+}
+
+QString V2HJsonData::getSelectedApplianceCurrentModeValueString()
+{
+    QString currentmodevaluestring;
+
+    if (false == m_SelectedApplianceID.isEmpty()){
+        for(const AttributeInfo &attribute : m_SelectedApplianceInfo.attributes){
+            if (KEY_ATTR_MODE == attribute.attributename){
+                currentmodevaluestring = attribute.value;
+            }
+        }
+    }
+
+    return currentmodevaluestring;
+}
+
+MappedInfo V2HJsonData::getSelectedApplianceCurrentMode()
+{
+    MappedInfo currentmode;
+    QList<MappedInfo> modelist = getSelectedApplianceModeList();
+    QString modevaluestring = getSelectedApplianceCurrentModeValueString();
+
+    for(const MappedInfo &mode : modelist){
+        if (modevaluestring == mode.key){
+            currentmode = mode;
+            break;
+        }
+    }
+
+    return currentmode;
 }
 
 int V2HJsonData::getApplianceInfoFromID(QString &appliance_id, ApplianceInfo &applianceinfo)
