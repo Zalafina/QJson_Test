@@ -86,6 +86,11 @@ typedef struct
     int home_link_type;
 }ServiceFlag;
 
+typedef struct
+{
+    QString tts;
+}OperationResult;
+
 class V2HJsonData : public QObject
 {
     Q_OBJECT
@@ -166,11 +171,11 @@ public:
     static QList<ApplianceInfo> m_V2H_ApplianceInfoList;
     static QList<ApplianceInfo> m_V2H_GroupApplianceInfoList;
     static QList<ApplianceInfo> m_V2H_TypeApplianceInfoList;
+    static QList<OperationResult> m_V2H_OperationResults;
     static QString m_GroupNameFilter;
     static QStringList m_GroupNameList;
     static QString m_ApplianceTypeFilter;
     static QStringList m_ApplianceTypeList;
-    static QString m_SelectedApplianceID;
     static int m_SelectedApplianceIndex;
     static ApplianceInfo m_SelectedApplianceInfo;
     static bool m_V2H_AppliancesListIsEnable;

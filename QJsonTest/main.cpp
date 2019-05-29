@@ -7,8 +7,8 @@
 #include "v2hjsondata.h"
 
 const char *json_filename_01 = "../json_data/GetServiceFlag.json";
-const char *json_filename_02 = "../json_data/AppliancesList.json";
-//const char *json_filename_02 = "../json_data/AppliancesList_New.json";
+//const char *json_filename_02 = "../json_data/AppliancesList.json";
+const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
 static const QString GROUP_KETING("客厅");
@@ -88,11 +88,11 @@ int load_json_02(const char *json_filename)
             V2H_Debug("V2HJsonData::setV2HAppliancesListJsonData Success.");
 
             //V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
-            V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
-            //V2HJsonData::setSelectApplianceID(QString("140737488379182"));
+            //V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
+            V2HJsonData::setSelectApplianceID(QString("140737488379182"));
 
             bool setGroupFilter = false;
-            setGroupFilter = V2HJsonData::setGroupNameFilter(GROUP_WOSHI);
+            setGroupFilter = V2HJsonData::setGroupNameFilter(GROUP_WEIFENZU);
             Q_UNUSED(setGroupFilter);
 
             ApplianceInfo applianceinfo = V2HJsonData::getSelectedApplianceInfo();
@@ -123,8 +123,6 @@ int load_json_02(const char *json_filename)
             Q_UNUSED(setTypeFilter);
 
             QList<ApplianceInfo> typeapplilancelist = V2HJsonData::getTypedAppliancesInfoList();
-
-            qDebug() << "typeapplilancelist.size():" << typeapplilancelist.size();
         }
     }
 

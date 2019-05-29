@@ -5,6 +5,7 @@ static const QString V2H_LOGERROR("[ERROR]");
 
 /* Common Keys */
 static const QString KEY_STATUS("status");
+static const QString KEY_DATA("data");
 
 /* ServiceFlag  Keys */
 static const QString KEY_SERVICE_FLAG("service_flag");
@@ -14,7 +15,6 @@ static const QString KEY_MAKER_APP_DL_URL("maker_app_dl_url");
 static const QString KEY_HOME_LINK_TYPE("home_link_type");
 
 /* AppliancesList Keys */
-static const QString KEY_DATA("data");
 static const QString KEY_ISENABLE("isenable");
 static const QString KEY_REDDOT("redDot");
 static const QString KEY_APPLIANCES("appliances");
@@ -62,6 +62,12 @@ static const QString KEY_DETAIL_RANGE("range");
 static const QString KEY_DETAIL_RANGE_MIN("min");
 static const QString KEY_DETAIL_RANGE_MAX("max");
 
+/* Appliance Operation Keys */
+static const QString KEY_RESULT("result");
+static const QString KEY_TTS_STATUS("tts_status");
+static const QString KEY_TTS_STATUS_TTS("tts");
+static const QString KEY_ATTRIBUTE("attribute");
+
 static const int STATUS_OK = 0;
 
 QString V2HJsonData::m_V2H_AppliancesListJsonString = QString();
@@ -74,11 +80,11 @@ cJSON V2HJsonData::m_V2H_cJSONAppliancesArray = cJSON();
 QList<ApplianceInfo> V2HJsonData::m_V2H_ApplianceInfoList = QList<ApplianceInfo>();
 QList<ApplianceInfo> V2HJsonData::m_V2H_GroupApplianceInfoList = QList<ApplianceInfo>();
 QList<ApplianceInfo> V2HJsonData::m_V2H_TypeApplianceInfoList = QList<ApplianceInfo>();
+QList<OperationResult> V2HJsonData::m_V2H_OperationResults = QList<OperationResult>();
 QString V2HJsonData::m_GroupNameFilter = QString();
 QStringList V2HJsonData::m_GroupNameList = QStringList();
 QString V2HJsonData::m_ApplianceTypeFilter = QString();
 QStringList V2HJsonData::m_ApplianceTypeList = QStringList();
-QString V2HJsonData::m_SelectedApplianceID = QString();
 int V2HJsonData::m_SelectedApplianceIndex = -1;
 ApplianceInfo V2HJsonData::m_SelectedApplianceInfo = ApplianceInfo();
 bool V2HJsonData::m_V2H_AppliancesListIsEnable = false;
@@ -709,6 +715,112 @@ bool V2HJsonData::setV2HApplianceOperationJsonData(const char *json_buffer)
                 && STATUS_OK == json_obj.value(KEY_STATUS).toInt()){
             m_V2H_ApplianceOperationJsonString = QString(json_buffer);
 
+            if((true == json_obj.contains(KEY_RESULT))
+                    && true == json_obj.value(KEY_RESULT).isArray()){
+                bool updated = false;
+                QJsonArray result_array = json_obj.value(KEY_RESULT).toArray();
+                ApplianceInfo applianceinfo = m_SelectedApplianceInfo;
+
+                for(const QJsonValue &json_value : result_array){
+                    OperationResult operationresult;
+                    if (true == json_value.isObject()){
+                        if((true == json_value.toObject().contains(KEY_TTS_STATUS))
+                                && true == json_value.toObject().value(KEY_TTS_STATUS).isObject()){
+                            if((true == json_value.toObject().value(KEY_TTS_STATUS).toObject().contains(KEY_TTS_STATUS_TTS))
+                                    && true == json_value.toObject().value(KEY_TTS_STATUS).toObject().value(KEY_TTS_STATUS_TTS).isString()){
+                                operationresult.tts = json_value.toObject().value(KEY_TTS_STATUS).toObject().value(KEY_TTS_STATUS_TTS).toString();
+                            }
+                        }
+
+                        if((true == json_value.toObject().contains(KEY_DATA))
+                                && true == json_value.toObject().value(KEY_DATA).isObject()){
+                            QJsonObject json_data = json_value.toObject().value(KEY_DATA).toObject();
+
+                            if((true == json_data.contains(KEY_ATTRIBUTE))
+                                    && true == json_data.value(KEY_ATTRIBUTE).isObject()){
+                                QJsonObject json_attribute = json_data.value(KEY_ATTRIBUTE).toObject();
+
+                                QStringList keys = json_attribute.keys();
+
+                                for(const QString &key : keys){
+                                    if((true == json_attribute.contains(key))
+                                            && true == json_attribute.value(key).isObject()){
+                                        QString attributename = key;
+                                        QString attributevalue;
+                                        int attributindex = 0;
+
+                                        if((true == json_attribute.value(key).toObject().contains(KEY_VALUE))
+                                                && true == json_attribute.value(key).toObject().value(KEY_VALUE).isString()){
+                                            attributevalue = json_attribute.value(key).toObject().value(KEY_VALUE).toString();
+                                        }
+
+                                        for(const AttributeInfo &attribute : m_SelectedApplianceInfo.attributes){
+                                            if (attributename == attribute.attributename){
+                                                if (false == attributevalue.isEmpty()){
+                                                    applianceinfo.attributes[attributindex].value = attributevalue;
+                                                    updated = true;
+                                                    V2H_NORMAL_LOG << "Appliance(" << m_SelectedApplianceInfo.friendlyName << ")[" << m_SelectedApplianceInfo.applianceId << "] " << m_SelectedApplianceInfo.attributes[attributindex].attributename << " set to ("<< attributevalue <<")";
+                                                }
+                                            }
+                                            attributindex += 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    m_V2H_OperationResults.append(operationresult);
+                }
+
+                if (true == updated){
+                    if (0 <= m_SelectedApplianceIndex && m_SelectedApplianceIndex < getTotalAppliances()){
+                        m_V2H_ApplianceInfoList[m_SelectedApplianceIndex] = applianceinfo;
+                        V2H_NORMAL_LOG << "ApplianceInfoList Index(" << m_SelectedApplianceIndex << ") Updated";
+                    }
+                    else{
+                        V2H_ERROR_LOG << "SelectedApplianceIndex = " << m_SelectedApplianceIndex << "; TotalAppliances = " << getTotalAppliances();
+                    }
+
+                    if (false == m_GroupNameFilter.isEmpty()){
+                        int groupindex = -1;
+                        int searchgroupindex = 0;
+                        for(const ApplianceInfo &appliance : m_V2H_GroupApplianceInfoList){
+                            if (applianceinfo.applianceId == appliance.applianceId){
+                                groupindex = searchgroupindex;
+                                break;
+                            }
+                            searchgroupindex += 1;
+                        }
+
+                        if (0 <= groupindex && groupindex < m_V2H_GroupApplianceInfoList.size()){
+                            m_V2H_GroupApplianceInfoList[groupindex] = applianceinfo;
+                            V2H_NORMAL_LOG << "GroupApplianceInfoList Index(" << groupindex << ") Updated";
+                        }
+                    }
+
+                    if (false == m_ApplianceTypeFilter.isEmpty()){
+                        int typeindex = -1;
+                        int searchtypeindex = 0;
+                        for(const ApplianceInfo &appliance : m_V2H_GroupApplianceInfoList){
+                            if (applianceinfo.applianceId == appliance.applianceId){
+                                typeindex = searchtypeindex;
+                                break;
+                            }
+                            searchtypeindex += 1;
+                        }
+
+                        if (0 <= typeindex && typeindex < m_V2H_TypeApplianceInfoList.size()){
+                            m_V2H_TypeApplianceInfoList[typeindex] = applianceinfo;
+                            V2H_NORMAL_LOG << "TypeApplianceInfoList Index(" << typeindex << ") Updated";
+                        }
+                    }
+
+                    m_SelectedApplianceInfo = applianceinfo;
+                }
+                else{
+                    V2H_NORMAL_LOG << "OperationResult has no valid data to update.";
+                }
+            }
             result = true;
         }
     }
@@ -788,7 +900,6 @@ bool V2HJsonData::setSelectApplianceID(QString appliance_id)
 
         if (appliance_index >= 0){
             m_SelectedApplianceIndex = appliance_index;
-            m_SelectedApplianceID = appliance_id;
             m_SelectedApplianceInfo = appliance_info;
             result = true;
         }
@@ -839,7 +950,7 @@ QString V2HJsonData::getGroupFilter()
 
 QString V2HJsonData::getSelectedApplianceID()
 {
-    return m_SelectedApplianceID;
+    return m_SelectedApplianceInfo.applianceId;
 }
 
 int V2HJsonData::getSelectedApplianceIndex()
@@ -876,7 +987,7 @@ QList<MappedInfo> V2HJsonData::getSelectedApplianceModeList()
 {
     QList<MappedInfo> modelist;
 
-    if (false == m_SelectedApplianceID.isEmpty()){
+    if (false == getSelectedApplianceID().isEmpty()){
         for(const AttributeInfo &attribute : m_SelectedApplianceInfo.attributes){
             if (KEY_ATTR_MODE == attribute.attributename){
                 modelist = attribute.detail.range_map;
@@ -891,7 +1002,7 @@ QString V2HJsonData::getSelectedApplianceCurrentModeValue()
 {
     QString currentmodevaluestring;
 
-    if (false == m_SelectedApplianceID.isEmpty()){
+    if (false == getSelectedApplianceID().isEmpty()){
         for(const AttributeInfo &attribute : m_SelectedApplianceInfo.attributes){
             if (KEY_ATTR_MODE == attribute.attributename){
                 currentmodevaluestring = attribute.value;
@@ -1016,7 +1127,6 @@ bool V2HJsonData::clearGroupFilter()
 bool V2HJsonData::clearSelectApplianceID()
 {
     m_SelectedApplianceIndex = -1;
-    m_SelectedApplianceID.clear();
     m_SelectedApplianceInfo = ApplianceInfo();
 
     return true;
