@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     (void)(argc);
     (void)(argv);
 
-    V2HJsonData::InitDeviceTypeMap();
+    V2HJsonData::Initialize();
     load_json_01(json_filename_01);
     load_json_02(json_filename_02);
     load_json_03(json_filename_03);
@@ -153,7 +153,15 @@ int load_json_02(const char *json_filename)
             qDebug() << V2HJsonData::generateGetAppliancesListJson().constData();
 
             QString appliancetype = QString("微波炉");
-            qDebug() << V2HJsonData::convertDeviceTypefromApplianceType(appliancetype);
+            qDebug() << V2HJsonData::convertApplianceType2DeviceType(appliancetype);
+
+            QString action = QString("incrementTemperature");
+            QString attributename = V2HJsonData::convertAction2AttributeName(action);
+            AttributeInfo attrubuteinfo = V2HJsonData::getSelectedApplianceAttributeInfo(attributename);
+
+            qDebug() << attrubuteinfo.value;
+            qDebug() << attrubuteinfo.detail.minmax_flag;
+            qDebug() << attrubuteinfo.detail.scale;
         }
     }
 

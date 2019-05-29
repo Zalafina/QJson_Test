@@ -52,6 +52,7 @@ static const QString KEY_ACTION_SETMODE("setMode");
 
 /* Attribute Names */
 static const QString KEY_ATTR_MODE("mode");
+static const QString KEY_ATTR_TURNONSTATE("turnOnState");
 
 /* Attribute Subkeys */
 static const QString KEY_DETAIL("detail");
@@ -89,6 +90,7 @@ static const int HOMELINKTYPE_BAIDU = 1;
 static const int HOMELINKTYPE_OTHER = 2;
 
 QHash<QString, QString> V2HJsonData::m_DeviceTypeMap = QHash<QString, QString>();
+QHash<QString, QString> V2HJsonData::m_AttributeMap = QHash<QString, QString>();
 QString V2HJsonData::m_V2H_AppliancesListJsonString = QString();
 QString V2HJsonData::m_V2H_ServiceFlagJsonString = QString();
 QString V2HJsonData::m_V2H_ApplianceOperationJsonString = QString();
@@ -126,6 +128,7 @@ void V2HJsonData::Initialize()
 {
     setV2HServiceFlagGeted(false);
     InitDeviceTypeMap();
+    InitAttributeMap();
 }
 
 void V2HJsonData::InitDeviceTypeMap()
@@ -150,6 +153,30 @@ void V2HJsonData::InitDeviceTypeMap()
     m_DeviceTypeMap.insert(QString("净水器"),          QString("WATER_PURIFIER"));
     m_DeviceTypeMap.insert(QString("伸缩衣架"),        QString("CLOTHES_RACK"));
     m_DeviceTypeMap.insert(QString("其他家电"),        QString("OTHER"));
+}
+
+void V2HJsonData::InitAttributeMap()
+{
+    m_AttributeMap.insert(QString("turnOn"),                                QString("turnOnState"));
+    m_AttributeMap.insert(QString("turnOff"),                               QString("turnOnState"));
+    m_AttributeMap.insert(QString("incrementBrightnessPercentage"),         QString("brightness"));
+    m_AttributeMap.insert(QString("decrementBrightnessPercentage"),         QString("brightness"));
+    m_AttributeMap.insert(QString("setBrightnessPercentage"),               QString("brightness"));
+    m_AttributeMap.insert(QString("incrementTemperature"),                  QString("targetTemperature"));
+    m_AttributeMap.insert(QString("decrementTemperature"),                  QString("targetTemperature"));
+    m_AttributeMap.insert(QString("setTemperature"),                        QString("targetTemperature"));
+    m_AttributeMap.insert(QString("incrementFanSpeed"),                     QString("fanSpeed"));
+    m_AttributeMap.insert(QString("decrementFanSpeed"),                     QString("fanSpeed"));
+    m_AttributeMap.insert(QString("setFanSpeed"),                           QString("fanSpeed"));
+    m_AttributeMap.insert(QString("charge"),                                QString("electricityCapacity"));
+    m_AttributeMap.insert(QString("discharge"),                             QString("electricityCapacity"));
+    m_AttributeMap.insert(QString("setSuction"),                            QString("suction"));
+    m_AttributeMap.insert(QString("setWaterLevel"),                         QString("waterLevel"));
+    m_AttributeMap.insert(QString("incrementStatus"),                       QString("status"));
+    m_AttributeMap.insert(QString("decrementStatus"),                       QString("status"));
+
+    /* Temp Recovery */
+    m_AttributeMap.insert(QString("targetTemperature"),                     QString("temperature"));
 }
 
 cJSON V2HJsonData::makecJSONAppliancesListArray(const char *json_buffer)
@@ -626,7 +653,7 @@ ServiceFlag V2HJsonData::makeServiceFlagFromJsonObj(QJsonObject &json_obj)
     return serviceflag;
 }
 
-QString V2HJsonData::convertDeviceTypefromApplianceType(QString &appliancetype)
+QString V2HJsonData::convertApplianceType2DeviceType(QString &appliancetype)
 {
     QString DeviceType;
 
@@ -635,6 +662,17 @@ QString V2HJsonData::convertDeviceTypefromApplianceType(QString &appliancetype)
     }
 
     return DeviceType;
+}
+
+QString V2HJsonData::convertAction2AttributeName(QString &action)
+{
+    QString AttributeName;
+
+    if (true == m_AttributeMap.contains(action)){
+        AttributeName = m_AttributeMap.value(action);
+    }
+
+    return AttributeName;
 }
 
 QByteArray V2HJsonData::generateGetServiceFlagJson()
@@ -1246,6 +1284,21 @@ MappedInfo V2HJsonData::getSelectedApplianceCurrentMode()
     }
 
     return currentmode;
+}
+
+AttributeInfo V2HJsonData::getSelectedApplianceAttributeInfo(QString attributename)
+{
+    AttributeInfo attributeinfo;
+
+    if (false == getSelectedApplianceID().isEmpty()){
+        for(const AttributeInfo &attribute : m_SelectedApplianceInfo.attributes){
+            if (attributename == attribute.attributename){
+                attributeinfo = attribute;
+            }
+        }
+    }
+
+    return attributeinfo;
 }
 
 QList<ActionBar> V2HJsonData::getSelectedApplianceActionBars()

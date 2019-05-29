@@ -116,6 +116,7 @@ public:
     /* Initialize Function */
     static void Initialize(void);
     static void InitDeviceTypeMap(void);
+    static void InitAttributeMap(void);
 
     /* Common Internal Function */
     static cJSON makecJSONAppliancesListArray(const char *json_buffer);
@@ -128,7 +129,8 @@ public:
     static ServiceFlag makeServiceFlagFromJsonObj(QJsonObject &json_obj);
 
     /* Common Public Function */
-    static QString convertDeviceTypefromApplianceType(QString &appliancetype);
+    static QString convertApplianceType2DeviceType(QString &appliancetype);
+    static QString convertAction2AttributeName(QString &action);
 
     /* Generate Operation Request Json String Function */
     static QByteArray generateGetServiceFlagJson(void);
@@ -165,6 +167,7 @@ public:
     static QList<MappedInfo> getSelectedApplianceModeList(void);
     static QString getSelectedApplianceCurrentModeValue(void);
     static MappedInfo getSelectedApplianceCurrentMode(void);
+    static AttributeInfo getSelectedApplianceAttributeInfo(QString attributename);
     static QList<ActionBar> getSelectedApplianceActionBars(void);
     static QList<Guideline> getSelectedApplianceGuideline(void);
     static bool getSelectedApplianceTurnOnOffSupported(void);
@@ -189,6 +192,7 @@ public slots:
 
 public:
     static QHash<QString, QString> m_DeviceTypeMap;
+    static QHash<QString, QString> m_AttributeMap;
     static QString m_V2H_AppliancesListJsonString;
     static QString m_V2H_ServiceFlagJsonString;
     static QString m_V2H_ApplianceOperationJsonString;
