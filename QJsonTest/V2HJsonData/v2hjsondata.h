@@ -113,7 +113,11 @@ public:
     explicit V2HJsonData(QObject *parent = 0);
     ~V2HJsonData();
 
-    /* Common Function */
+    /* Initialize Function */
+    static void Initialize(void);
+    static void InitDeviceTypeMap(void);
+
+    /* Common Internal Function */
     static cJSON makecJSONAppliancesListArray(const char *json_buffer);
     static bool verifyV2HJsonData(QJsonObject &json_obj);
     static QList<ApplianceInfo> makeApplianceInfoListFromJsonArray(QJsonArray &json_array);
@@ -122,6 +126,9 @@ public:
     static QStringList makeApplianceTypeList(void);
     static QList<ApplianceInfo> makeAppliancesInfoListByType(QString &appliancetype);
     static ServiceFlag makeServiceFlagFromJsonObj(QJsonObject &json_obj);
+
+    /* Common Public Function */
+    static QString convertDeviceTypefromApplianceType(QString &appliancetype);
 
     /* Generate Operation Request Json String Function */
     static QByteArray generateGetServiceFlagJson(void);
@@ -181,6 +188,7 @@ signals:
 public slots:
 
 public:
+    static QHash<QString, QString> m_DeviceTypeMap;
     static QString m_V2H_AppliancesListJsonString;
     static QString m_V2H_ServiceFlagJsonString;
     static QString m_V2H_ApplianceOperationJsonString;

@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     (void)(argc);
     (void)(argv);
 
+    V2HJsonData::InitDeviceTypeMap();
     load_json_01(json_filename_01);
     load_json_02(json_filename_02);
     load_json_03(json_filename_03);
@@ -70,8 +71,8 @@ int load_json_02(const char *json_filename)
 
     if (jsondata.isEmpty() != true){
 #if 0
-        cJSON *monitor_json = cJSON_Parse(jsondata.constData());
-        if (monitor_json == NULL)
+        cJSON *v2h_json = cJSON_Parse(jsondata.constData());
+        if (v2h_json == NULL)
         {
             const char *error_ptr = cJSON_GetErrorPtr();
             if (error_ptr != NULL)
@@ -150,6 +151,9 @@ int load_json_02(const char *json_filename)
 
             qDebug() << "GetAppliancesList Json ByteArray:";
             qDebug() << V2HJsonData::generateGetAppliancesListJson().constData();
+
+            QString appliancetype = QString("微波炉");
+            qDebug() << V2HJsonData::convertDeviceTypefromApplianceType(appliancetype);
         }
     }
 

@@ -88,6 +88,7 @@ static const int STATUS_OK = 0;
 static const int HOMELINKTYPE_BAIDU = 1;
 static const int HOMELINKTYPE_OTHER = 2;
 
+QHash<QString, QString> V2HJsonData::m_DeviceTypeMap = QHash<QString, QString>();
 QString V2HJsonData::m_V2H_AppliancesListJsonString = QString();
 QString V2HJsonData::m_V2H_ServiceFlagJsonString = QString();
 QString V2HJsonData::m_V2H_ApplianceOperationJsonString = QString();
@@ -113,12 +114,42 @@ bool V2HJsonData::m_V2H_ApplianceOperationUpdated = false;
 
 V2HJsonData::V2HJsonData(QObject *parent) : QObject(parent)
 {
-    setV2HServiceFlagGeted(false);
+
 }
 
 V2HJsonData::~V2HJsonData()
 {
 
+}
+
+void V2HJsonData::Initialize()
+{
+    setV2HServiceFlagGeted(false);
+    InitDeviceTypeMap();
+}
+
+void V2HJsonData::InitDeviceTypeMap()
+{
+    m_DeviceTypeMap.insert(QString("灯"),              QString("LIGHT"));
+    m_DeviceTypeMap.insert(QString("空调"),            QString("AIR_CONDITION"));
+    m_DeviceTypeMap.insert(QString("洗衣机"),          QString("WASHING_MACHINE"));
+    m_DeviceTypeMap.insert(QString("插座"),            QString("SOCKET"));
+    m_DeviceTypeMap.insert(QString("电风扇"),          QString("FAN"));
+    m_DeviceTypeMap.insert(QString("扫地机器人"),      QString("SWEEPING_ROBOT"));
+    m_DeviceTypeMap.insert(QString("空气净化器"),      QString("AIR_PURIFIER"));
+    m_DeviceTypeMap.insert(QString("电饭煲"),          QString("RICE_COOKER"));
+    m_DeviceTypeMap.insert(QString("微波炉"),          QString("MICROWAVE_OVEN"));
+    m_DeviceTypeMap.insert(QString("烤箱"),            QString("OVEN"));
+    m_DeviceTypeMap.insert(QString("取暖器"),          QString("AIR_HEATER"));
+    m_DeviceTypeMap.insert(QString("加湿器"),          QString("HUMIDIFIER"));
+    m_DeviceTypeMap.insert(QString("热水器"),          QString("WATER_HEATER"));
+    m_DeviceTypeMap.insert(QString("窗帘"),            QString("CURTAIN"));
+    m_DeviceTypeMap.insert(QString("抽油烟机"),        QString("RANGE_HOOD"));
+    m_DeviceTypeMap.insert(QString("电磁炉"),          QString("INDUCTION_COOKER"));
+    m_DeviceTypeMap.insert(QString("电冰箱"),          QString("FRIDGE"));
+    m_DeviceTypeMap.insert(QString("净水器"),          QString("WATER_PURIFIER"));
+    m_DeviceTypeMap.insert(QString("伸缩衣架"),        QString("CLOTHES_RACK"));
+    m_DeviceTypeMap.insert(QString("其他家电"),        QString("OTHER"));
 }
 
 cJSON V2HJsonData::makecJSONAppliancesListArray(const char *json_buffer)
@@ -593,6 +624,17 @@ ServiceFlag V2HJsonData::makeServiceFlagFromJsonObj(QJsonObject &json_obj)
     serviceflag.geted = true;
 
     return serviceflag;
+}
+
+QString V2HJsonData::convertDeviceTypefromApplianceType(QString &appliancetype)
+{
+    QString DeviceType;
+
+    if (true == m_DeviceTypeMap.contains(appliancetype)){
+        DeviceType = m_DeviceTypeMap.value(appliancetype);
+    }
+
+    return DeviceType;
 }
 
 QByteArray V2HJsonData::generateGetServiceFlagJson()
