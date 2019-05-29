@@ -68,7 +68,25 @@ static const QString KEY_TTS_STATUS("tts_status");
 static const QString KEY_TTS_STATUS_TTS("tts");
 static const QString KEY_ATTRIBUTE("attribute");
 
+/* Common Request Keys for cJSON */
+static const char *CJSON_IMEI = "imei";
+
+/* Operation Request Keys for cJSON */
+static const char *CJSON_DEVICEID = "deviceId";
+static const char *CJSON_DEVICENAME = "deviceName";
+static const char *CJSON_GROUPNAME = "groupName";
+static const char *CJSON_OPERATION = "operation";
+static const char *CJSON_OPERATIONPARAM = "operationParam";
+static const char *CJSON_HOME_LINK_TYPE = "home_link_type";
+static const char *CJSON_MODE = "mode";
+static const char *CJSON_MODE_DEVICETYPE = "deviceType";
+static const char *CJSON_MODE_VALUE = "value";
+
+static const char *OPERATION_IMEI("XXXXXXXX");
+
 static const int STATUS_OK = 0;
+static const int HOMELINKTYPE_BAIDU = 1;
+static const int HOMELINKTYPE_OTHER = 2;
 
 QString V2HJsonData::m_V2H_AppliancesListJsonString = QString();
 QString V2HJsonData::m_V2H_ServiceFlagJsonString = QString();
@@ -575,6 +593,165 @@ ServiceFlag V2HJsonData::makeServiceFlagFromJsonObj(QJsonObject &json_obj)
     serviceflag.geted = true;
 
     return serviceflag;
+}
+
+QByteArray V2HJsonData::generateGetServiceFlagJson()
+{
+    QByteArray getserviceflag_json;
+    char *string = NULL;
+    cJSON *imei = NULL;
+
+    cJSON *getserviceflag_cjson = cJSON_CreateObject();
+    if (getserviceflag_cjson == NULL)
+    {
+        return getserviceflag_json;
+    }
+
+    imei = cJSON_CreateString(OPERATION_IMEI);
+    if (imei == NULL)
+    {
+        return getserviceflag_json;
+    }
+    cJSON_AddItemToObject(getserviceflag_cjson, CJSON_IMEI, imei);
+
+    string = cJSON_Print(getserviceflag_cjson);
+
+    getserviceflag_json = QByteArray(string);
+
+    return getserviceflag_json;
+}
+
+QByteArray V2HJsonData::generateGetAppliancesListJson()
+{
+    QByteArray getapplianceslist_json;
+    char *string = NULL;
+    cJSON *imei = NULL;
+    cJSON *home_link_type = NULL;
+
+    cJSON *getapplianceslist_cjson = cJSON_CreateObject();
+    if (getapplianceslist_cjson == NULL)
+    {
+        return getapplianceslist_json;
+    }
+
+    imei = cJSON_CreateString(OPERATION_IMEI);
+    if (imei == NULL)
+    {
+        return getapplianceslist_json;
+    }
+    cJSON_AddItemToObject(getapplianceslist_cjson, CJSON_IMEI, imei);
+
+    home_link_type = cJSON_CreateNumber(HOMELINKTYPE_BAIDU);
+    if (home_link_type == NULL)
+    {
+        return getapplianceslist_json;
+    }
+    cJSON_AddItemToObject(getapplianceslist_cjson, CJSON_HOME_LINK_TYPE, home_link_type);
+
+    string = cJSON_Print(getapplianceslist_cjson);
+
+    getapplianceslist_json = QByteArray(string);
+
+    return getapplianceslist_json;
+}
+
+QByteArray V2HJsonData::generateOperationRequestJson(OperationRequest &operation_req)
+{
+    QByteArray operation_req_json;
+    char *string = NULL;
+    cJSON *imei = NULL;
+    cJSON *deviceId = NULL;
+    cJSON *deviceName = NULL;
+    cJSON *groupName = NULL;
+    cJSON *operation = NULL;
+    cJSON *home_link_type = NULL;
+
+    cJSON *operation_cjson = cJSON_CreateObject();
+    if (operation_cjson == NULL)
+    {
+        return operation_req_json;
+    }
+
+    imei = cJSON_CreateString(OPERATION_IMEI);
+    if (imei == NULL)
+    {
+        return operation_req_json;
+    }
+    cJSON_AddItemToObject(operation_cjson, CJSON_IMEI, imei);
+
+    deviceId = cJSON_CreateString(operation_req.deviceId.toUtf8().constData());
+    if (deviceId == NULL)
+    {
+        return operation_req_json;
+    }
+    cJSON_AddItemToObject(operation_cjson, CJSON_DEVICEID, deviceId);
+
+    deviceName = cJSON_CreateString(operation_req.deviceName.toUtf8().constData());
+    if (deviceName == NULL)
+    {
+        return operation_req_json;
+    }
+    cJSON_AddItemToObject(operation_cjson, CJSON_DEVICENAME, deviceName);
+
+    groupName = cJSON_CreateString(operation_req.groupName.toUtf8().constData());
+    if (groupName == NULL)
+    {
+        return operation_req_json;
+    }
+    cJSON_AddItemToObject(operation_cjson, CJSON_GROUPNAME, groupName);
+
+    operation = cJSON_CreateString(operation_req.operation.toUtf8().constData());
+    if (operation == NULL)
+    {
+        return operation_req_json;
+    }
+    cJSON_AddItemToObject(operation_cjson, CJSON_OPERATION, operation);
+
+    if ((false == operation_req.mode.value.isEmpty())
+            && (false == operation_req.mode.deviceType.isEmpty())){
+        cJSON *operationparam = cJSON_CreateObject();
+        if (operationparam == NULL)
+        {
+            return operation_req_json;
+        }
+        cJSON_AddItemToObject(operation_cjson, CJSON_OPERATIONPARAM, operationparam);
+
+        cJSON *mode = cJSON_CreateObject();
+        if (mode == NULL)
+        {
+            return operation_req_json;
+        }
+        cJSON_AddItemToObject(operationparam, CJSON_MODE, mode);
+
+        cJSON *mode_devicetype = NULL;
+        cJSON *mode_value = NULL;
+        mode_devicetype = cJSON_CreateString(operation_req.mode.deviceType.toUtf8().constData());
+        if (mode_devicetype == NULL)
+        {
+            return operation_req_json;
+        }
+        cJSON_AddItemToObject(mode, CJSON_MODE_DEVICETYPE, mode_devicetype);
+
+        mode_value = cJSON_CreateString(operation_req.mode.value.toUtf8().constData());
+        if (mode_devicetype == NULL)
+        {
+            return operation_req_json;
+        }
+        cJSON_AddItemToObject(mode, CJSON_MODE_VALUE, mode_value);
+    }
+
+    home_link_type = cJSON_CreateNumber(HOMELINKTYPE_BAIDU);
+    if (home_link_type == NULL)
+    {
+        return operation_req_json;
+    }
+    cJSON_AddItemToObject(operation_cjson, CJSON_HOME_LINK_TYPE, home_link_type);
+
+    string = cJSON_Print(operation_cjson);
+
+    operation_req_json = QByteArray(string);
+
+    return operation_req_json;
 }
 
 void V2HJsonData::setV2HServiceFlagUpdatedFlag(bool flag)

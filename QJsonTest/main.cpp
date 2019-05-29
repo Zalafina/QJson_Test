@@ -123,6 +123,33 @@ int load_json_02(const char *json_filename)
             Q_UNUSED(setTypeFilter);
 
             QList<ApplianceInfo> typeapplilancelist = V2HJsonData::getTypedAppliancesInfoList();
+
+            OperationRequest operationrequest;
+            operationrequest.deviceId = applianceinfo.applianceId;
+            operationrequest.deviceName = applianceinfo.friendlyName;
+            operationrequest.groupName = applianceinfo.groupName;
+            operationrequest.operation = QString("setMode");
+            operationrequest.mode.deviceType = QString("AIR_CONDITION");
+            operationrequest.mode.value = QString("HEAT");
+            QByteArray operation_req_json = V2HJsonData::generateOperationRequestJson(operationrequest);
+            qDebug() << "Request Json ByteArray:";
+            qDebug() << operation_req_json.constData();
+
+
+            OperationRequest operationrequest_1;
+            operationrequest_1.deviceId = applianceinfo.applianceId;
+            operationrequest_1.deviceName = applianceinfo.friendlyName;
+            operationrequest_1.groupName = applianceinfo.groupName;
+            operationrequest_1.operation = QString("incrementTemperature");
+            operation_req_json = V2HJsonData::generateOperationRequestJson(operationrequest_1);
+            qDebug() << "Request Json ByteArray1:";
+            qDebug() << operation_req_json.constData();
+
+            qDebug() << "GetServiceFlag Json ByteArray:";
+            qDebug() << V2HJsonData::generateGetServiceFlagJson().constData();
+
+            qDebug() << "GetAppliancesList Json ByteArray:";
+            qDebug() << V2HJsonData::generateGetAppliancesListJson().constData();
         }
     }
 

@@ -91,6 +91,21 @@ typedef struct
     QString tts;
 }OperationResult;
 
+typedef struct
+{
+    QString deviceType;
+    QString value;
+}SetModeParam;
+
+typedef struct
+{
+    QString deviceId;
+    QString deviceName;
+    QString groupName;
+    QString operation;
+    SetModeParam mode;
+}OperationRequest;
+
 class V2HJsonData : public QObject
 {
     Q_OBJECT
@@ -107,6 +122,11 @@ public:
     static QStringList makeApplianceTypeList(void);
     static QList<ApplianceInfo> makeAppliancesInfoListByType(QString &appliancetype);
     static ServiceFlag makeServiceFlagFromJsonObj(QJsonObject &json_obj);
+
+    /* Generate Operation Request Json String Function */
+    static QByteArray generateGetServiceFlagJson(void);
+    static QByteArray generateGetAppliancesListJson(void);
+    static QByteArray generateOperationRequestJson(OperationRequest &operation_req);
 
     /* Set Function for V2H Data */
     static void setV2HServiceFlagUpdatedFlag(bool flag);
