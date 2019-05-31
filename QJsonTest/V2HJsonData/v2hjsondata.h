@@ -108,7 +108,7 @@ typedef struct
 
 class V2HJsonData : public QObject
 {
-    Q_OBJECT
+    //Q_OBJECT
 public:
     explicit V2HJsonData(QObject *parent = 0);
     ~V2HJsonData();
