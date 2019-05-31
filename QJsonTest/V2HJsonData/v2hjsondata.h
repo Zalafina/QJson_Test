@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QProcess>
 #include "cJSON.h"
 
 #define V2H_JSON_DATA_DEBUG
@@ -189,6 +190,7 @@ public:
 signals:
 
 public slots:
+    static void slotBaiduLogoFetchFinished(int exitCode);
 
 public:
     static QHash<QString, QString> m_DeviceTypeMap;

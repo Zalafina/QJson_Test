@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <QFile>
 #include <QString>
+#include <QProcess>
 #include <QDebug>
 
 #include "v2hjsondata.h"
@@ -10,6 +11,8 @@ const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 //const char *json_filename_02 = "../json_data/AppliancesList.json";
 const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
+
+const char *filepath_baidulogo = "../baidu_logo.jpg";
 
 static const QString GROUP_KETING("客厅");
 static const QString GROUP_WOSHI("卧室");
@@ -53,6 +56,22 @@ int load_json_01(const char *json_filename)
 
         if (true == result){
             V2H_Debug("V2HJsonData::setV2HServiceFlagJsonData Success.");
+
+            ServiceFlag serviceflag = V2HJsonData::getV2HServiceFlag();
+
+            if (false == serviceflag.app_logo_url.isEmpty()){
+                QProcess *process = new QProcess();
+
+                QString program("curl");
+                QStringList list;
+                list.append("-k");
+                list.append(serviceflag.app_logo_url);
+                list.append("-o");
+                list.append(filepath_baidulogo);
+
+                process->start(program,list);
+                process->waitForFinished();
+            }
         }
     }
 
