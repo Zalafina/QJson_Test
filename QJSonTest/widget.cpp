@@ -1,18 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <QFile>
-#include <QString>
-#include <QProcess>
-#include <QDebug>
-
-#include "v2hjsondata.h"
+#include "widget.h"
+#include "ui_widget.h"
 
 const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 //const char *json_filename_02 = "../json_data/AppliancesList.json";
 const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
-const char *filepath_baidulogo = "../baidu_logo.jpg";
+const char *filepath_baidulogo = "../logo/baidu_logo.jpg";
 
 static const QString GROUP_KETING("客厅");
 static const QString GROUP_WOSHI("卧室");
@@ -23,25 +17,21 @@ static const QString TYPE_CHAZUO("插座");
 static const QString TYPE_DENG("灯");
 static const QString TYPE_KONGTIAO("空调");
 
-
-int load_json_01(const char *json_filename);
-int load_json_02(const char *json_filename);
-int load_json_03(const char *json_filename);
-
-int main(int argc, char *argv[])
+Widget::Widget(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::Widget)
 {
-    (void)(argc);
-    (void)(argv);
+    ui->setupUi(this);
 
     V2HJsonData::Initialize();
-    load_json_01(json_filename_01);
-    load_json_02(json_filename_02);
-    load_json_03(json_filename_03);
-
-    return 0;
 }
 
-int load_json_01(const char *json_filename)
+Widget::~Widget()
+{
+    delete ui;
+}
+
+int Widget::load_json_01(const char *json_filename)
 {
     QFile file(json_filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
@@ -78,7 +68,7 @@ int load_json_01(const char *json_filename)
     return 0;
 }
 
-int load_json_02(const char *json_filename)
+int Widget::load_json_02(const char *json_filename)
 {
     QFile file(json_filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
@@ -187,7 +177,7 @@ int load_json_02(const char *json_filename)
     return 0;
 }
 
-int load_json_03(const char *json_filename)
+int Widget::load_json_03(const char *json_filename)
 {
     QFile file(json_filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
@@ -206,4 +196,19 @@ int load_json_03(const char *json_filename)
     }
 
     return 0;
+}
+
+void Widget::on_pushButton_clicked()
+{
+    load_json_01(json_filename_01);
+}
+
+void Widget::on_pushButton_2_clicked()
+{
+    load_json_02(json_filename_02);
+}
+
+void Widget::on_pushButton_3_clicked()
+{
+    load_json_03(json_filename_03);
 }
