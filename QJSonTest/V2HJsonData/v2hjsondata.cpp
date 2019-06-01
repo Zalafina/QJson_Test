@@ -114,6 +114,8 @@ bool V2HJsonData::m_V2H_ServiceFlagUpdated = false;
 bool V2HJsonData::m_V2H_AppliancesListUpdated = false;
 bool V2HJsonData::m_V2H_ApplianceOperationUpdated = false;
 
+QPixmap *V2HJsonData::m_V2H_BaiduLogo = Q_NULLPTR;
+
 V2HJsonData::V2HJsonData(QObject *parent) : QObject(parent)
 {
 
@@ -129,6 +131,10 @@ void V2HJsonData::Initialize()
     setV2HServiceFlagGeted(false);
     InitDeviceTypeMap();
     InitAttributeMap();
+
+    if (Q_NULLPTR == m_V2H_BaiduLogo){
+        m_V2H_BaiduLogo = new QPixmap();
+    }
 }
 
 void V2HJsonData::InitDeviceTypeMap()
@@ -177,6 +183,13 @@ void V2HJsonData::InitAttributeMap()
 
     /* Temp Recovery */
     m_AttributeMap.insert(QString("targetTemperature"),                     QString("temperature"));
+}
+
+void V2HJsonData::Deinitialize()
+{
+    if (m_V2H_BaiduLogo != Q_NULLPTR){
+        delete m_V2H_BaiduLogo;
+    }
 }
 
 cJSON V2HJsonData::makecJSONAppliancesListArray(const char *json_buffer)
@@ -1165,6 +1178,20 @@ bool V2HJsonData::setSelectApplianceID(QString appliance_id)
     return result;
 }
 
+bool V2HJsonData::setQRCodeBaiduLogo(QPixmap &logo)
+{
+    bool result = false;
+    if ((false == logo.isNull())
+            && (logo.width() > 0)
+            && (logo.height() > 0)){
+        *m_V2H_BaiduLogo = logo;
+        result = true;
+        V2H_NORMAL_LOG << "Set BaiduLogo width(" << logo.width() << "), height(" << logo.height() << ")";
+    }
+
+    return result;
+}
+
 bool V2HJsonData::getV2HServiceFlagUpdatedFlag()
 {
     return m_V2H_ServiceFlagUpdated;
@@ -1356,6 +1383,11 @@ QList<ApplianceInfo> V2HJsonData::getGroupedAppliancesInfoList()
 QList<ApplianceInfo> V2HJsonData::getTypedAppliancesInfoList()
 {
     return m_V2H_TypeApplianceInfoList;
+}
+
+QPixmap V2HJsonData::getQRCodeBaiduLogo()
+{
+    return *m_V2H_BaiduLogo;
 }
 
 QJsonArray V2HJsonData::getJsonAppliancesArrayFromJsonData()

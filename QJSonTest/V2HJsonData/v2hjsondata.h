@@ -6,7 +6,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QProcess>
+#include <QPixmap>
 #include "cJSON.h"
 
 #define V2H_JSON_DATA_DEBUG
@@ -119,6 +119,9 @@ public:
     static void InitDeviceTypeMap(void);
     static void InitAttributeMap(void);
 
+    /* Deinitialize Function */
+    static void Deinitialize(void);
+
     /* Common Internal Function */
     static cJSON makecJSONAppliancesListArray(const char *json_buffer);
     static bool verifyV2HJsonData(QJsonObject &json_obj);
@@ -150,6 +153,9 @@ public:
     static bool setApplianceTypeFilter(QString appliancetype);
     static bool setSelectApplianceID(QString appliance_id);
 
+    /* Set Function for V2H Logo Pixmap */
+    static bool setQRCodeBaiduLogo(QPixmap &logo);
+
     /* Get Function for V2H Data */
     static bool getV2HServiceFlagUpdatedFlag(void);
     static bool getV2HAppliancesListUpdatedFlag(void);
@@ -178,6 +184,9 @@ public:
     static QList<ApplianceInfo> getGroupedAppliancesInfoList(void);
     static QList<ApplianceInfo> getTypedAppliancesInfoList(void);
 
+    /* Get Function for V2H Logo Pixmap */
+    static QPixmap getQRCodeBaiduLogo(void);
+
     /* Get Function for V2H JsonData */
     static QJsonArray getJsonAppliancesArrayFromJsonData(void);
     static QJsonArray getJsonAppliancesArray(void);
@@ -189,10 +198,7 @@ public:
 
 signals:
 
-public slots:
-    static void slotBaiduLogoFetchFinished(int exitCode);
-
-public:
+private:
     static QHash<QString, QString> m_DeviceTypeMap;
     static QHash<QString, QString> m_AttributeMap;
     static QString m_V2H_AppliancesListJsonString;
@@ -218,7 +224,7 @@ public:
     static bool m_V2H_AppliancesListUpdated;
     static bool m_V2H_ApplianceOperationUpdated;
 
-private:
+    static QPixmap *m_V2H_BaiduLogo;
 };
 
 #endif // V2HJSONDATA_H

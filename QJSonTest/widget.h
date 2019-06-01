@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QFile>
+#include <QProcess>
 #include "v2hjsondata.h"
 
 namespace Ui {

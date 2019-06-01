@@ -6,7 +6,8 @@ const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
-const char *filepath_baidulogo = "../logo/baidu_logo.jpg";
+const char *baidulogo_filepath = "../logo/baidu_logo.jpg";
+const char *baidulogo_format = "PNG";
 
 static const QString GROUP_KETING("客厅");
 static const QString GROUP_WOSHI("卧室");
@@ -57,10 +58,27 @@ int Widget::load_json_01(const char *json_filename)
                 list.append("-k");
                 list.append(serviceflag.app_logo_url);
                 list.append("-o");
-                list.append(filepath_baidulogo);
+                list.append(baidulogo_filepath);
+
+
+                QObject::connect(process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus exitStatus){
+                    if ((QProcess::NormalExit == exitStatus)
+                            && (0 == exitCode)){
+                        QPixmap baidulogo(baidulogo_filepath, baidulogo_format);
+                        if ((false == baidulogo.isNull())
+                                && (baidulogo.width() > 0)
+                                && (baidulogo.height() > 0)){
+                            bool result;
+                            result = V2HJsonData::setQRCodeBaiduLogo(baidulogo);
+                            if (true == result){
+                                qDebug().noquote().nospace() << "V2HJsonData::setQRCodeBaiduLogo() Success";
+                            }
+                        }
+                    }
+                });
 
                 process->start(program,list);
-                process->waitForFinished();
+                qDebug().noquote().nospace() << "QProcess start";
             }
         }
     }
@@ -171,6 +189,11 @@ int Widget::load_json_02(const char *json_filename)
             qDebug() << attrubuteinfo.value;
             qDebug() << attrubuteinfo.detail.minmax_flag;
             qDebug() << attrubuteinfo.detail.scale;
+
+            QPixmap baidulogo;
+            baidulogo = V2HJsonData::getQRCodeBaiduLogo();
+            qDebug() << "width:" << baidulogo.width();
+            qDebug() << "height:" << baidulogo.height();
         }
     }
 
