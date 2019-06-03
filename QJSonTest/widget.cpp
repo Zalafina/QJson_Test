@@ -6,7 +6,8 @@ const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
-const char *baidulogo_filepath = "../logo/baidu_logo.jpg";
+static const QString BAIDULOGO_DIR("../logo/");
+static const QString BAIDULOGO_FILENAME("baidu_logo.jpg");
 const char *baidulogo_format = "PNG";
 
 static const QString GROUP_KETING("客厅");
@@ -51,6 +52,8 @@ int Widget::load_json_01(const char *json_filename)
             ServiceFlag serviceflag = V2HJsonData::getV2HServiceFlag();
 
             if (false == serviceflag.app_logo_url.isEmpty()){
+                QString baidulogo_filepath = BAIDULOGO_DIR + BAIDULOGO_FILENAME;
+
                 QProcess *process = new QProcess();
 
                 QString program("curl");
