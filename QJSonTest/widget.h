@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QFile>
 #include <QProcess>
+#include <QDir>
 #include "v2hjsondata.h"
 
 namespace Ui {

@@ -6,7 +6,8 @@ const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
-static const QString BAIDULOGO_DIR("../logo/");
+static const QString QRCODE_LOGO_PATH("..");
+static const QString BAIDULOGO_DIR("logo");
 static const QString BAIDULOGO_FILENAME("baidu_logo.jpg");
 const char *baidulogo_format = "PNG";
 
@@ -47,41 +48,59 @@ int Widget::load_json_01(const char *json_filename)
         bool result = V2HJsonData::setV2HServiceFlagJsonData(jsondata.constData());
 
         if (true == result){
-            V2H_Debug("V2HJsonData::setV2HServiceFlagJsonData Success.");
+            qDebug("V2HJsonData::setV2HServiceFlagJsonData Success.");
 
             ServiceFlag serviceflag = V2HJsonData::getV2HServiceFlag();
 
             if (false == serviceflag.app_logo_url.isEmpty()){
-                QString baidulogo_filepath = BAIDULOGO_DIR + BAIDULOGO_FILENAME;
+                bool path_ok = true;
+                QString baidulogo_filepath = QRCODE_LOGO_PATH + "/" + BAIDULOGO_DIR + "/" + BAIDULOGO_FILENAME;
+                QDir dir(QRCODE_LOGO_PATH);
 
-                QProcess *process = new QProcess();
+                if (false == dir.exists()){
+                    qDebug().noquote().nospace() << "[Error]: " << QRCODE_LOGO_PATH << " not exists.";
+                    path_ok = false;
+                }
 
-                QString program("curl");
-                QStringList list;
-                list.append("-k");
-                list.append(serviceflag.app_logo_url);
-                list.append("-o");
-                list.append(baidulogo_filepath);
+                if ((true == path_ok) && (false == dir.exists(BAIDULOGO_DIR))){
+                    if (true == dir.mkdir(BAIDULOGO_DIR)){
+                        qDebug().noquote().nospace() << "Make dir:" << QRCODE_LOGO_PATH + "/" + BAIDULOGO_DIR << " success.";
+                    }
+                    else{
+                        qDebug().noquote().nospace() << "[Error]: Make dir(" << QRCODE_LOGO_PATH << ") failure.";
+                        path_ok = false;
+                    }
+                }
 
+                if (true == path_ok){
+                    QProcess *process = new QProcess();
 
-                QObject::connect(process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus exitStatus){
-                    if ((QProcess::NormalExit == exitStatus)
-                            && (0 == exitCode)){
-                        QPixmap baidulogo(baidulogo_filepath, baidulogo_format);
-                        if ((false == baidulogo.isNull())
-                                && (baidulogo.width() > 0)
-                                && (baidulogo.height() > 0)){
-                            bool result;
-                            result = V2HJsonData::setQRCodeBaiduLogo(baidulogo);
-                            if (true == result){
-                                qDebug().noquote().nospace() << "V2HJsonData::setQRCodeBaiduLogo() Success";
+                    QString program("curl");
+                    QStringList list;
+                    list.append("-k");
+                    list.append(serviceflag.app_logo_url);
+                    list.append("-o");
+                    list.append(baidulogo_filepath);
+
+                    QObject::connect(process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus exitStatus){
+                        if ((QProcess::NormalExit == exitStatus)
+                                && (0 == exitCode)){
+                            QPixmap baidulogo(baidulogo_filepath, baidulogo_format);
+                            if ((false == baidulogo.isNull())
+                                    && (baidulogo.width() > 0)
+                                    && (baidulogo.height() > 0)){
+                                bool result;
+                                result = V2HJsonData::setQRCodeBaiduLogo(baidulogo);
+                                if (true == result){
+                                    qDebug().noquote().nospace() << "V2HJsonData::setQRCodeBaiduLogo() Success";
+                                }
                             }
                         }
-                    }
-                });
+                    });
 
-                process->start(program,list);
-                qDebug().noquote().nospace() << "QProcess start";
+                    process->start(program,list);
+                    qDebug().noquote().nospace() << "QProcess start";
+                }
             }
         }
     }
@@ -116,7 +135,7 @@ int Widget::load_json_02(const char *json_filename)
         bool result = V2HJsonData::setV2HAppliancesListJsonData(jsondata.constData());
 
         if (true == result){
-            V2H_Debug("V2HJsonData::setV2HAppliancesListJsonData Success.");
+            qDebug("V2HJsonData::setV2HAppliancesListJsonData Success.");
 
             //V2HJsonData::setSelectApplianceID(QString("008bb7698fa34a2bbe97ff3766e88850"));
             //V2HJsonData::setSelectApplianceID(QString("00000000000000000000780f77fc66d7"));
@@ -217,7 +236,7 @@ int Widget::load_json_03(const char *json_filename)
         bool result = V2HJsonData::setV2HApplianceOperationJsonData(jsondata.constData());
 
         if (true == result){
-            V2H_Debug("V2HJsonData::setV2HApplianceOperationJsonData Success.");
+            qDebug("V2HJsonData::setV2HApplianceOperationJsonData Success.");
         }
     }
 
