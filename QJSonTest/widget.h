@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QProcess>
 #include <QDir>
+#include <QThread>
 #include "v2hjsondata.h"
 
 namespace Ui {

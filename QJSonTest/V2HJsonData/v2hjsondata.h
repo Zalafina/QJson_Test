@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QPixmap>
+#include <QTime>
 #include "cJSON.h"
 
 #define V2H_JSON_DATA_DEBUG
@@ -132,6 +133,9 @@ public:
     static QList<ApplianceInfo> makeAppliancesInfoListByType(QString &appliancetype);
     static ServiceFlag makeServiceFlagFromJsonObj(QJsonObject &json_obj);
 
+    /* Make Random Guideline strings for VR */
+    static QStringList makeRandomGuidelineStringlist(int maxstings);
+
     /* Common Public Function */
     static QString convertApplianceType2DeviceType(QString &appliancetype);
     static QString convertAction2AttributeName(QString &action);
@@ -183,6 +187,7 @@ public:
     static QList<ApplianceInfo> getAppliancesInfoList(void);
     static QList<ApplianceInfo> getGroupedAppliancesInfoList(void);
     static QList<ApplianceInfo> getTypedAppliancesInfoList(void);
+    static QStringList getAllGuidelineStrings(void);
 
     /* Get Function for V2H Logo Pixmap */
     static QPixmap getQRCodeBaiduLogo(void);
@@ -216,6 +221,7 @@ private:
     static QStringList m_GroupNameList;
     static QString m_ApplianceTypeFilter;
     static QStringList m_ApplianceTypeList;
+    static QStringList m_AllGuidelineStrings;
     static int m_SelectedApplianceIndex;
     static ApplianceInfo m_SelectedApplianceInfo;
     static bool m_V2H_AppliancesListIsEnable;

@@ -106,6 +106,7 @@ QString V2HJsonData::m_GroupNameFilter = QString();
 QStringList V2HJsonData::m_GroupNameList = QStringList();
 QString V2HJsonData::m_ApplianceTypeFilter = QString();
 QStringList V2HJsonData::m_ApplianceTypeList = QStringList();
+QStringList V2HJsonData::m_AllGuidelineStrings = QStringList();
 int V2HJsonData::m_SelectedApplianceIndex = -1;
 ApplianceInfo V2HJsonData::m_SelectedApplianceInfo = ApplianceInfo();
 bool V2HJsonData::m_V2H_AppliancesListIsEnable = false;
@@ -352,6 +353,7 @@ QList<ApplianceInfo> V2HJsonData::makeApplianceInfoListFromJsonArray(QJsonArray 
                             while(guideline_child_cjson != NULL){
                                 if (true == cJSON_IsString(guideline_child_cjson)){
                                     guideline.values.append(QString(guideline_child_cjson->valuestring));
+                                    m_AllGuidelineStrings.append(QString(guideline_child_cjson->valuestring));
                                 }
 
                                 guideline_child_cjson = guideline_child_cjson->next;
@@ -666,6 +668,37 @@ ServiceFlag V2HJsonData::makeServiceFlagFromJsonObj(QJsonObject &json_obj)
     return serviceflag;
 }
 
+QStringList V2HJsonData::makeRandomGuidelineStringlist(int maxstings)
+{
+    QStringList guidelinestrlist;
+
+    if (maxstings > 0){
+        QStringList wholeguidelinestrings = getAllGuidelineStrings();
+
+        if (maxstings < wholeguidelinestrings.size()){
+            uint loopcount = 1;
+            while (guidelinestrlist.size() < maxstings){
+                uint random_seed = QTime::currentTime().msec() + loopcount;
+                qsrand(random_seed);
+                int rand_int = qrand() % wholeguidelinestrings.size();
+                qDebug() << "rand_int:" << rand_int;
+
+                QString rand_guidelinestr = wholeguidelinestrings.at(rand_int);
+                if (false == guidelinestrlist.contains(rand_guidelinestr)){
+                    guidelinestrlist.append(rand_guidelinestr);
+                }
+                loopcount += 1;
+            }
+
+        }
+        else{
+            guidelinestrlist = wholeguidelinestrings;
+        }
+    }
+
+    return guidelinestrlist;
+}
+
 QString V2HJsonData::convertApplianceType2DeviceType(QString &appliancetype)
 {
     QString DeviceType;
@@ -925,6 +958,7 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
 
                 if (false == cJSON_IsNull(&cjson_array)){
                     m_V2H_cJSONAppliancesArray = cjson_array;
+                    m_AllGuidelineStrings.clear();
                     m_V2H_ApplianceInfoList = makeApplianceInfoListFromJsonArray(m_V2H_ApplianceArray);
                 }
 
@@ -1383,6 +1417,11 @@ QList<ApplianceInfo> V2HJsonData::getGroupedAppliancesInfoList()
 QList<ApplianceInfo> V2HJsonData::getTypedAppliancesInfoList()
 {
     return m_V2H_TypeApplianceInfoList;
+}
+
+QStringList V2HJsonData::getAllGuidelineStrings()
+{
+    return m_AllGuidelineStrings;
 }
 
 QPixmap V2HJsonData::getQRCodeBaiduLogo()

@@ -6,6 +6,8 @@ const char *json_filename_01 = "../json_data/GetServiceFlag.json";
 const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
+const int GUIDELINE_STRING_MAX = 3;
+
 static const QString QRCODE_LOGO_PATH("..");
 static const QString BAIDULOGO_DIR("logo");
 static const QString BAIDULOGO_FILENAME("baidu_logo.jpg");
@@ -216,6 +218,17 @@ int Widget::load_json_02(const char *json_filename)
             baidulogo = V2HJsonData::getQRCodeBaiduLogo();
             qDebug() << "width:" << baidulogo.width();
             qDebug() << "height:" << baidulogo.height();
+
+            QStringList guidelinestrs = V2HJsonData::makeRandomGuidelineStringlist(GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
+
+            QThread::msleep(50);
+            guidelinestrs = V2HJsonData::makeRandomGuidelineStringlist(GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
+
+            QThread::msleep(50);
+            guidelinestrs = V2HJsonData::makeRandomGuidelineStringlist(GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
         }
     }
 
