@@ -150,9 +150,9 @@ int Widget::load_json_02(const char *json_filename)
             ApplianceInfo applianceinfo = V2HJsonData::getSelectedApplianceInfo();
             QList<MappedInfo> modelist = V2HJsonData::getSelectedApplianceModeList();
 
-            QList<ApplianceInfo> groupapplilancelist = V2HJsonData::getGroupedAppliancesInfoList();
+            QList<ApplianceInfo> filtedapplilancelist = V2HJsonData::getFiltedAppliancesInfoList();
 
-            qDebug() << "groupapplilancelist.size():" << groupapplilancelist.size();
+            qDebug() << "set group -> filtedapplilancelist.size():" << filtedapplilancelist.size();
             Q_UNUSED(applianceinfo);
             Q_UNUSED(modelist);
 
@@ -174,7 +174,8 @@ int Widget::load_json_02(const char *json_filename)
             setTypeFilter = V2HJsonData::setApplianceTypeFilter(TYPE_KONGTIAO);
             Q_UNUSED(setTypeFilter);
 
-            QList<ApplianceInfo> typeapplilancelist = V2HJsonData::getTypedAppliancesInfoList();
+            filtedapplilancelist = V2HJsonData::getFiltedAppliancesInfoList();
+            qDebug() << "set type -> filtedapplilancelist.size():" << filtedapplilancelist.size();
 
             OperationRequest operationrequest;
             operationrequest.deviceId = applianceinfo.applianceId;

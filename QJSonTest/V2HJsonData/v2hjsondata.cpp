@@ -83,7 +83,7 @@ static const char *CJSON_MODE = "mode";
 static const char *CJSON_MODE_DEVICETYPE = "deviceType";
 static const char *CJSON_MODE_VALUE = "value";
 
-static const char *OPERATION_IMEI("XXXXXXXX");
+static const char *OPERATION_IMEI("XXXXXXXXXXXXXXXX");
 
 static const int STATUS_OK = 0;
 static const int HOMELINKTYPE_BAIDU = 1;
@@ -91,6 +91,7 @@ static const int HOMELINKTYPE_OTHER = 2;
 
 QHash<QString, QString> V2HJsonData::m_DeviceTypeMap = QHash<QString, QString>();
 QHash<QString, QString> V2HJsonData::m_AttributeMap = QHash<QString, QString>();
+QHash<QString, QStringList> V2HJsonData::m_DeviceTypeGuidelineMap = QHash<QString, QStringList>();
 QString V2HJsonData::m_V2H_AppliancesListJsonString = QString();
 QString V2HJsonData::m_V2H_ServiceFlagJsonString = QString();
 QString V2HJsonData::m_V2H_ApplianceOperationJsonString = QString();
@@ -99,8 +100,7 @@ QJsonObject V2HJsonData::m_V2H_JsonData = QJsonObject();
 QJsonArray V2HJsonData::m_V2H_ApplianceArray = QJsonArray();
 cJSON V2HJsonData::m_V2H_cJSONAppliancesArray = cJSON();
 QList<ApplianceInfo> V2HJsonData::m_V2H_ApplianceInfoList = QList<ApplianceInfo>();
-QList<ApplianceInfo> V2HJsonData::m_V2H_GroupApplianceInfoList = QList<ApplianceInfo>();
-QList<ApplianceInfo> V2HJsonData::m_V2H_TypeApplianceInfoList = QList<ApplianceInfo>();
+QList<ApplianceInfo> V2HJsonData::m_V2H_FiltedApplianceInfoList = QList<ApplianceInfo>();
 QList<OperationResult> V2HJsonData::m_V2H_OperationResults = QList<OperationResult>();
 QString V2HJsonData::m_GroupNameFilter = QString();
 QStringList V2HJsonData::m_GroupNameList = QStringList();
@@ -564,26 +564,6 @@ QStringList V2HJsonData::makeGroupNameList()
     return groupnamelist;
 }
 
-QList<ApplianceInfo> V2HJsonData::makeAppliancesInfoListByGroup(QString &groupname)
-{
-    QList<ApplianceInfo> applianceinfolist;
-
-    if((false == groupname.isEmpty())
-            && (getTotalAppliances() > 0)){
-
-        for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
-            if (groupname == appliance.groupName){
-                applianceinfolist.append(appliance);
-            }
-        }
-    }
-    else{
-        applianceinfolist = m_V2H_ApplianceInfoList;
-    }
-
-    return applianceinfolist;
-}
-
 QStringList V2HJsonData::makeApplianceTypeList()
 {
     QStringList appliancetypelist;
@@ -605,6 +585,96 @@ QStringList V2HJsonData::makeApplianceTypeList()
     }
 
     return appliancetypelist;
+}
+
+QHash<QString, QStringList> V2HJsonData::makeDeviceTypeGuidelineMap()
+{
+    QHash<QString, QStringList> guidelinemap;
+
+    for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
+        if (false == appliance.guideline.isEmpty()){
+            QStringList type_guidelines;
+            for(const Guideline &guideline : appliance.guideline){
+                for(const QString &guidestring : guideline.values){
+                    if (false == type_guidelines.contains(guidestring)){
+                        type_guidelines.append(guidestring);
+                    }
+                }
+            }
+
+            guidelinemap.insert(appliance.applianceTypes.at(0), type_guidelines);
+        }
+    }
+
+    return guidelinemap;
+}
+
+QList<ApplianceInfo> V2HJsonData::makeFiltedAppliancesInfoList()
+{
+    QList<ApplianceInfo> applianceinfolist;
+    QString groupFilter = getGroupFilter();
+    QString typeFilter = getTypeFilter();
+
+    if ((false == groupFilter.isEmpty()) && (false == typeFilter.isEmpty())){
+        for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
+            if (groupFilter == appliance.groupName){
+                if (false == appliance.applianceTypes.isEmpty()){
+                    for(const QString &type : appliance.applianceTypes){
+                        if ((false == type.isEmpty())
+                                && (typeFilter == type)){
+                            applianceinfolist.append(appliance);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else if (false == groupFilter.isEmpty()){
+        for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
+            if (groupFilter == appliance.groupName){
+                applianceinfolist.append(appliance);
+            }
+        }
+    }
+    else if (false == typeFilter.isEmpty()){
+        for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
+            if (false == appliance.applianceTypes.isEmpty()){
+                for(const QString &type : appliance.applianceTypes){
+                    if ((false == type.isEmpty())
+                            && (typeFilter == type)){
+                        applianceinfolist.append(appliance);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else{
+        return m_V2H_ApplianceInfoList;
+    }
+
+    return applianceinfolist;
+}
+
+QList<ApplianceInfo> V2HJsonData::makeAppliancesInfoListByGroup(QString &groupname)
+{
+    QList<ApplianceInfo> applianceinfolist;
+
+    if((false == groupname.isEmpty())
+            && (getTotalAppliances() > 0)){
+
+        for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
+            if (groupname == appliance.groupName){
+                applianceinfolist.append(appliance);
+            }
+        }
+    }
+    else{
+        applianceinfolist = m_V2H_ApplianceInfoList;
+    }
+
+    return applianceinfolist;
 }
 
 QList<ApplianceInfo> V2HJsonData::makeAppliancesInfoListByType(QString &appliancetype)
@@ -963,40 +1033,11 @@ bool V2HJsonData::setV2HAppliancesListJsonData(const char *json_buffer)
                 }
 
                 m_GroupNameList = makeGroupNameList();
-                if (false == m_GroupNameFilter.isEmpty()){
-                    bool setGroupFilter = false;
-                    setGroupFilter = setGroupNameFilter(m_GroupNameFilter);
-
-                    if (true == setGroupFilter){
-                        V2H_NORMAL_LOG << "Reset GroupNameFilter(" << m_GroupNameFilter << ")" << "Success.";
-                    }
-                    else{
-                        m_V2H_GroupApplianceInfoList = m_V2H_ApplianceInfoList;
-                        V2H_ERROR_LOG << "Reset GroupNameFilter(" << m_GroupNameFilter << ")" << "Failure.";
-                    }
-                }
-                else{
-                    m_V2H_GroupApplianceInfoList = m_V2H_ApplianceInfoList;
-                }
-
                 m_ApplianceTypeList = makeApplianceTypeList();
-                if (false == m_ApplianceTypeFilter.isEmpty()){
-                    bool setTypeFilter = false;
-                    setTypeFilter = setApplianceTypeFilter(m_ApplianceTypeFilter);
+                m_V2H_FiltedApplianceInfoList = makeFiltedAppliancesInfoList();
+                m_DeviceTypeGuidelineMap = makeDeviceTypeGuidelineMap();
 
-                    if (true == setTypeFilter){
-                        V2H_NORMAL_LOG << "Reset ApplianceTypeFilter(" << m_ApplianceTypeFilter << ")" << "Success.";
-                    }
-                    else{
-                        m_V2H_TypeApplianceInfoList = m_V2H_ApplianceInfoList;
-                        V2H_ERROR_LOG << "Reset ApplianceTypeFilter(" << m_ApplianceTypeFilter << ")" << "Failure.";
-                    }
-                }
-                else{
-                    m_V2H_TypeApplianceInfoList = m_V2H_ApplianceInfoList;
-                }
                 result = true;
-
                 V2H_NORMAL_LOG << "TotalAppliances = " << V2HJsonData::getTotalAppliances();
             }
         }
@@ -1085,38 +1126,19 @@ bool V2HJsonData::setV2HApplianceOperationJsonData(const char *json_buffer)
                         V2H_ERROR_LOG << "SelectedApplianceIndex = " << m_SelectedApplianceIndex << "; TotalAppliances = " << getTotalAppliances();
                     }
 
-                    if (false == m_GroupNameFilter.isEmpty()){
-                        int groupindex = -1;
-                        int searchgroupindex = 0;
-                        for(const ApplianceInfo &appliance : m_V2H_GroupApplianceInfoList){
-                            if (applianceinfo.applianceId == appliance.applianceId){
-                                groupindex = searchgroupindex;
-                                break;
-                            }
-                            searchgroupindex += 1;
+                    int filtedindex = -1;
+                    int searchfiltedindex = 0;
+                    for(const ApplianceInfo &appliance : m_V2H_FiltedApplianceInfoList){
+                        if (applianceinfo.applianceId == appliance.applianceId){
+                            filtedindex = searchfiltedindex;
+                            break;
                         }
-
-                        if (0 <= groupindex && groupindex < m_V2H_GroupApplianceInfoList.size()){
-                            m_V2H_GroupApplianceInfoList[groupindex] = applianceinfo;
-                            V2H_NORMAL_LOG << "GroupApplianceInfoList Index(" << groupindex << ") Updated";
-                        }
+                        searchfiltedindex += 1;
                     }
 
-                    if (false == m_ApplianceTypeFilter.isEmpty()){
-                        int typeindex = -1;
-                        int searchtypeindex = 0;
-                        for(const ApplianceInfo &appliance : m_V2H_GroupApplianceInfoList){
-                            if (applianceinfo.applianceId == appliance.applianceId){
-                                typeindex = searchtypeindex;
-                                break;
-                            }
-                            searchtypeindex += 1;
-                        }
-
-                        if (0 <= typeindex && typeindex < m_V2H_TypeApplianceInfoList.size()){
-                            m_V2H_TypeApplianceInfoList[typeindex] = applianceinfo;
-                            V2H_NORMAL_LOG << "TypeApplianceInfoList Index(" << typeindex << ") Updated";
-                        }
+                    if (0 <= filtedindex && filtedindex < m_V2H_FiltedApplianceInfoList.size()){
+                        m_V2H_FiltedApplianceInfoList[filtedindex] = applianceinfo;
+                        V2H_NORMAL_LOG << "FiltedApplianceInfoList Index(" << filtedindex << ") Updated";
                     }
 
                     m_SelectedApplianceInfo = applianceinfo;
@@ -1151,12 +1173,7 @@ bool V2HJsonData::setGroupNameFilter(QString groupname)
 
     if (true == find){
         m_GroupNameFilter = groupname;
-        QList<ApplianceInfo> applianceinfolist = makeAppliancesInfoListByGroup(groupname);
-
-        if (applianceinfolist.size() > 0){
-            m_V2H_GroupApplianceInfoList = applianceinfolist;
-        }
-
+        m_V2H_FiltedApplianceInfoList = makeFiltedAppliancesInfoList();
         result = true;
     }
 
@@ -1182,12 +1199,7 @@ bool V2HJsonData::setApplianceTypeFilter(QString appliancetype)
 
     if (true == find){
         m_ApplianceTypeFilter = appliancetype;
-        QList<ApplianceInfo> applianceinfolist = makeAppliancesInfoListByType(appliancetype);
-
-        if (applianceinfolist.size() > 0){
-            m_V2H_TypeApplianceInfoList = applianceinfolist;
-        }
-
+        m_V2H_FiltedApplianceInfoList = makeFiltedAppliancesInfoList();
         result = true;
     }
 
@@ -1266,6 +1278,11 @@ QString V2HJsonData::getGroupFilter()
     return m_GroupNameFilter;
 }
 
+QString V2HJsonData::getTypeFilter()
+{
+    return m_ApplianceTypeFilter;
+}
+
 QString V2HJsonData::getSelectedApplianceID()
 {
     return m_SelectedApplianceInfo.applianceId;
@@ -1289,6 +1306,11 @@ int V2HJsonData::getTotalAppliances()
 QStringList V2HJsonData::getGroupNameList()
 {
     return m_GroupNameList;
+}
+
+QStringList V2HJsonData::getApplianceTypeList()
+{
+    return m_ApplianceTypeList;
 }
 
 ApplianceInfo V2HJsonData::getSelectedApplianceInfo()
@@ -1409,14 +1431,9 @@ QList<ApplianceInfo> V2HJsonData::getAppliancesInfoList()
     return m_V2H_ApplianceInfoList;
 }
 
-QList<ApplianceInfo> V2HJsonData::getGroupedAppliancesInfoList()
+QList<ApplianceInfo> V2HJsonData::getFiltedAppliancesInfoList()
 {
-    return m_V2H_GroupApplianceInfoList;
-}
-
-QList<ApplianceInfo> V2HJsonData::getTypedAppliancesInfoList()
-{
-    return m_V2H_TypeApplianceInfoList;
+    return m_V2H_FiltedApplianceInfoList;
 }
 
 QStringList V2HJsonData::getAllGuidelineStrings()
@@ -1462,8 +1479,25 @@ bool V2HJsonData::clearV2HJsonData()
 bool V2HJsonData::clearGroupFilter()
 {
     m_GroupNameFilter.clear();
-    m_V2H_GroupApplianceInfoList = m_V2H_ApplianceInfoList;
+    m_V2H_FiltedApplianceInfoList = makeFiltedAppliancesInfoList();
 
+    return true;
+}
+
+bool V2HJsonData::clearTypeFilter()
+{
+    m_ApplianceTypeFilter.clear();
+    m_V2H_FiltedApplianceInfoList = makeFiltedAppliancesInfoList();
+
+    return true;
+}
+
+bool V2HJsonData::clearAllFilters()
+{
+    m_GroupNameFilter.clear();
+    m_ApplianceTypeFilter.clear();
+
+    m_V2H_FiltedApplianceInfoList = makeFiltedAppliancesInfoList();
     return true;
 }
 

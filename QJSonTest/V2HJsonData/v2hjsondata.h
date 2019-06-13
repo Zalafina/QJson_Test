@@ -7,6 +7,8 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QPixmap>
+#include <QProcess>
+#include <QDir>
 #include <QTime>
 #include "cJSON.h"
 
@@ -128,8 +130,10 @@ public:
     static bool verifyV2HJsonData(QJsonObject &json_obj);
     static QList<ApplianceInfo> makeApplianceInfoListFromJsonArray(QJsonArray &json_array);
     static QStringList makeGroupNameList(void);
-    static QList<ApplianceInfo> makeAppliancesInfoListByGroup(QString &groupname);
     static QStringList makeApplianceTypeList(void);
+    static QHash<QString, QStringList> makeDeviceTypeGuidelineMap(void);
+    static QList<ApplianceInfo> makeFiltedAppliancesInfoList(void);
+    static QList<ApplianceInfo> makeAppliancesInfoListByGroup(QString &groupname);
     static QList<ApplianceInfo> makeAppliancesInfoListByType(QString &appliancetype);
     static ServiceFlag makeServiceFlagFromJsonObj(QJsonObject &json_obj);
 
@@ -169,10 +173,12 @@ public:
     static bool getV2HJsonDataIsEnable(void);
     static bool getV2HJsonDataRedDot(void);
     static QString getGroupFilter(void);
+    static QString getTypeFilter(void);
     static QString getSelectedApplianceID(void);
     static int getSelectedApplianceIndex(void);
     static int getTotalAppliances(void);
     static QStringList getGroupNameList(void);
+    static QStringList getApplianceTypeList(void);
     static ApplianceInfo getSelectedApplianceInfo(void);
     static QStringList getSelectedApplianceTypes(void);
     static QList<MappedInfo> getSelectedApplianceModeList(void);
@@ -185,8 +191,7 @@ public:
     static bool getSelectedApplianceSetModeSupported(void);
     static int getApplianceInfoFromID(QString &appliance_id, ApplianceInfo &applianceinfo);
     static QList<ApplianceInfo> getAppliancesInfoList(void);
-    static QList<ApplianceInfo> getGroupedAppliancesInfoList(void);
-    static QList<ApplianceInfo> getTypedAppliancesInfoList(void);
+    static QList<ApplianceInfo> getFiltedAppliancesInfoList(void);
     static QStringList getAllGuidelineStrings(void);
 
     /* Get Function for V2H Logo Pixmap */
@@ -199,6 +204,8 @@ public:
     /* Clear Function for V2H Data */
     static bool clearV2HJsonData(void);
     static bool clearGroupFilter(void);
+    static bool clearTypeFilter(void);
+    static bool clearAllFilters(void);
     static bool clearSelectApplianceID(void);
 
 signals:
@@ -206,6 +213,7 @@ signals:
 private:
     static QHash<QString, QString> m_DeviceTypeMap;
     static QHash<QString, QString> m_AttributeMap;
+    static QHash<QString, QStringList> m_DeviceTypeGuidelineMap;
     static QString m_V2H_AppliancesListJsonString;
     static QString m_V2H_ServiceFlagJsonString;
     static QString m_V2H_ApplianceOperationJsonString;
@@ -214,8 +222,7 @@ private:
     static QJsonArray  m_V2H_ApplianceArray;
     static cJSON m_V2H_cJSONAppliancesArray;
     static QList<ApplianceInfo> m_V2H_ApplianceInfoList;
-    static QList<ApplianceInfo> m_V2H_GroupApplianceInfoList;
-    static QList<ApplianceInfo> m_V2H_TypeApplianceInfoList;
+    static QList<ApplianceInfo> m_V2H_FiltedApplianceInfoList;
     static QList<OperationResult> m_V2H_OperationResults;
     static QString m_GroupNameFilter;
     static QStringList m_GroupNameList;
