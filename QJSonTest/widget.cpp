@@ -7,6 +7,7 @@ const char *json_filename_02 = "../json_data/AppliancesList_New.json";
 const char *json_filename_03 = "../json_data/AppOperation_OK.json";
 
 const int GUIDELINE_STRING_MAX = 3;
+const int TYPE_GUIDELINE_STRING_MAX = 5;
 
 static const QString QRCODE_LOGO_PATH("..");
 static const QString BAIDULOGO_DIR("logo");
@@ -229,6 +230,31 @@ int Widget::load_json_02(const char *json_filename)
 
             QThread::msleep(50);
             guidelinestrs = V2HJsonData::makeRandomGuidelineStringlist(GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
+
+
+            QStringList typeguidelinestrs;
+            QString tempstr;
+            tempstr = TYPE_DENG;
+            guidelinestrs = V2HJsonData::makeDeviceTypeRandomGuidelineStringlist(tempstr, TYPE_GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
+
+            QThread::msleep(50);
+            guidelinestrs = V2HJsonData::makeDeviceTypeRandomGuidelineStringlist(tempstr, TYPE_GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
+
+            QThread::msleep(50);
+            guidelinestrs = V2HJsonData::makeDeviceTypeRandomGuidelineStringlist(tempstr, TYPE_GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
+
+            QThread::msleep(50);
+            tempstr = TYPE_CHAZUO;
+            guidelinestrs = V2HJsonData::makeDeviceTypeRandomGuidelineStringlist(tempstr, TYPE_GUIDELINE_STRING_MAX);
+            qDebug() << guidelinestrs;
+
+            QThread::msleep(50);
+            tempstr = TYPE_KONGTIAO;
+            guidelinestrs = V2HJsonData::makeDeviceTypeRandomGuidelineStringlist(tempstr, TYPE_GUIDELINE_STRING_MAX);
             qDebug() << guidelinestrs;
         }
     }

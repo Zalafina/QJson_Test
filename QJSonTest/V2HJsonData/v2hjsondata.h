@@ -139,6 +139,7 @@ public:
 
     /* Make Random Guideline strings for VR */
     static QStringList makeRandomGuidelineStringlist(int maxstings);
+    static QStringList makeDeviceTypeRandomGuidelineStringlist(QString &appliancetype, int maxstings);
 
     /* Common Public Function */
     static QString convertApplianceType2DeviceType(QString &appliancetype);

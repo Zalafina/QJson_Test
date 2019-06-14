@@ -594,6 +594,10 @@ QHash<QString, QStringList> V2HJsonData::makeDeviceTypeGuidelineMap()
     for(const ApplianceInfo &appliance : m_V2H_ApplianceInfoList){
         if (false == appliance.guideline.isEmpty()){
             QStringList type_guidelines;
+
+            if (true == guidelinemap.contains(appliance.applianceTypes.at(0))){
+                type_guidelines = guidelinemap.take(appliance.applianceTypes.at(0));
+            }
             for(const Guideline &guideline : appliance.guideline){
                 for(const QString &guidestring : guideline.values){
                     if (false == type_guidelines.contains(guidestring)){
@@ -764,6 +768,45 @@ QStringList V2HJsonData::makeRandomGuidelineStringlist(int maxstings)
         else{
             guidelinestrlist = wholeguidelinestrings;
         }
+    }
+
+    return guidelinestrlist;
+}
+
+QStringList V2HJsonData::makeDeviceTypeRandomGuidelineStringlist(QString &appliancetype, int maxstings)
+{
+    QStringList guidelinestrlist;
+
+    if ((false == appliancetype.isEmpty()) && (maxstings > 0)){
+        if (true == m_DeviceTypeGuidelineMap.contains(appliancetype)){
+            QStringList typeguidelinestrings = m_DeviceTypeGuidelineMap.value(appliancetype);
+
+            if (maxstings < typeguidelinestrings.size()){
+                uint loopcount = 1;
+                while (guidelinestrlist.size() < maxstings){
+                    uint random_seed = QTime::currentTime().msec() + loopcount;
+                    qsrand(random_seed);
+                    int rand_int = qrand() % typeguidelinestrings.size();
+                    qDebug() << "rand_int:" << rand_int;
+
+                    QString rand_guidelinestr = typeguidelinestrings.at(rand_int);
+                    if (false == guidelinestrlist.contains(rand_guidelinestr)){
+                        guidelinestrlist.append(rand_guidelinestr);
+                    }
+                    loopcount += 1;
+                }
+
+            }
+            else{
+                guidelinestrlist = typeguidelinestrings;
+            }
+        }
+        else{
+            V2H_ERROR_LOG << "m_DeviceTypeGuidelineMap do not contains type(" << appliancetype << ")";
+        }
+    }
+    else{
+        V2H_ERROR_LOG << "appliancetype.isEmpty()=" << appliancetype.isEmpty() << ", " << "maxstings=" << maxstings;
     }
 
     return guidelinestrlist;
